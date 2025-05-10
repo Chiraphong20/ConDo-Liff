@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
+
+body {
+  font-family: 'Kanit', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #F5F6FA;
+}
+
+.container {
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
+  margin-top: 30px;
+}
+
+.profile {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: gray; /* หรือใส่รูปภาพแทน */
+  margin: auto;
+}
+
+.info {
+  text-align: left;
+  margin-top: 10px;
+}
+
+.info h2 {
+  text-align: center;
+  font-size: 20px;
+}
