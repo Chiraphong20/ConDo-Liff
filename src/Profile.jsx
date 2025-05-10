@@ -8,44 +8,49 @@ function Profile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' });
+useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      console.log("🚀 เริ่มโหลด LIFF...");
+      await liff.init({ liffId: '2007355122-xBNrkXmM' });
 
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-
-        const userProfile = await liff.getProfile();
-        const userId = userProfile.userId;
-
-        const docRef = doc(db, "users", userId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setProfile({ ...docSnap.data(), uid: userId });
-        } else {
-          console.warn("ไม่มีข้อมูลในฐานข้อมูลสำหรับ UID:", userId);
-          setProfile({
-            name: userProfile.displayName,
-            room: '-',
-            building: '-',
-            phone: '-',
-            uid: userId,
-          });
-        }
-
-        setLoading(false);
-      } catch (err) {
-        console.error("เกิดข้อผิดพลาด:", err);
-        setLoading(false);
+      if (!liff.isLoggedIn()) {
+        console.log("🔑 ยังไม่ login → กำลัง redirect...");
+        liff.login();
+        return;
       }
-    };
 
-    fetchProfile();
-  }, []);
+      const userProfile = await liff.getProfile();
+      console.log("👤 userProfile:", userProfile);
+
+      const userId = userProfile.userId;
+      const docRef = doc(db, "users", userId);
+      const docSnap = await getDoc(docRef);
+      console.log("📦 docSnap.exists:", docSnap.exists());
+
+      if (docSnap.exists()) {
+        setProfile({ ...docSnap.data(), uid: userId });
+      } else {
+        console.warn("⚠️ ไม่มีข้อมูลในฐานข้อมูลสำหรับ UID:", userId);
+        setProfile({
+          name: userProfile.displayName,
+          room: '-',
+          building: '-',
+          phone: '-',
+          uid: userId,
+        });
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error("❌ เกิดข้อผิดพลาด:", err);
+      setLoading(false);
+    }
+  };
+
+  fetchProfile();
+}, []);
+
 
   if (loading) return <div className="container">กำลังโหลดข้อมูล...</div>;
 
