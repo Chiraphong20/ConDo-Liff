@@ -11,7 +11,7 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        await liff.init({ liffId: 'YOUR_LIFF_ID' });
+        await liff.init({ liffId: '2007355122-xBNrkXmM' });
 
         if (!liff.isLoggedIn()) {
           liff.login();
