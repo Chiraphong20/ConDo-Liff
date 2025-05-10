@@ -5,7 +5,7 @@ import Repair from './Repair';
 import Payment from './Payment';
 import BillDetail from './BillDetail';
 import Register from './Register';
-import Meet from './meet';
+import Meet from './Meet';
 import Status from './Status';
 
 function App() {
