@@ -3,7 +3,6 @@ import { doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import liff from '@line/liff';
 import { useNavigate } from 'react-router-dom';
-import './CSS/Register.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -58,7 +57,7 @@ const Register = () => {
       });
 
       alert("✅ ลงทะเบียนสำเร็จ");
-      navigate('/profile'); // ไปที่หน้าข้อมูลส่วนตัว
+      navigate('/profile');
     } catch (err) {
       console.error("❌ บันทึกไม่สำเร็จ:", err);
       alert("เกิดข้อผิดพลาดในการลงทะเบียน");
@@ -69,54 +68,29 @@ const Register = () => {
     <div className="container">
       <h2>ลงทะเบียน</h2>
       <form onSubmit={handleSubmit}>
-        <label htmlFor="fullname">ชื่อ</label>
-        <input type="text" name="fullname" value={formData.fullname} onChange={handleChange} required />
-
-        <label htmlFor="surname">นามสกุล</label>
-        <input type="text" name="surname" value={formData.surname} onChange={handleChange} required />
-
-        <label htmlFor="phone">เบอร์โทรศัพท์</label>
-        <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required />
-
-        <label htmlFor="email">อีเมลล์</label>
-        <input type="email" name="email" value={formData.email} onChange={handleChange} required />
-
-        <div className="row">
-          <div className="form-group">
-            <label htmlFor="role">บทบาท</label>
-            <select name="role" value={formData.role} onChange={handleChange} required>
-              <option value="">เลือกบทบาท</option>
-              <option value="A">ลูกบ้าน</option>
-              <option value="B">นิติบุคคล</option>
-              <option value="C">ช่าง</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="room">ห้อง</label>
-            <select name="room" value={formData.room} onChange={handleChange} required>
-              <option value="">เลือกห้อง</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="C">C</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="building">ตึก</label>
-            <select name="building" value={formData.building} onChange={handleChange} required>
-              <option value="">เลือกตึก</option>
-              <option value="A">A</option>
-              <option value="B">B</option>
-              <option value="C">C</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="submit">
-          <button type="button" className="buttoncancel" onClick={() => navigate('/')}>ยกเลิก</button>
-          <button type="submit" className="buttonOK">ยืนยัน</button>
-        </div>
+        <input type="text" name="fullname" placeholder="ชื่อ" onChange={handleChange} required />
+        <input type="text" name="surname" placeholder="นามสกุล" onChange={handleChange} required />
+        <input type="tel" name="phone" placeholder="เบอร์โทร" onChange={handleChange} required />
+        <input type="email" name="email" placeholder="อีเมล" onChange={handleChange} required />
+        <select name="role" value={formData.role} onChange={handleChange} required>
+          <option value="">เลือกบทบาท</option>
+          <option value="A">ลูกบ้าน</option>
+          <option value="B">นิติบุคคล</option>
+          <option value="C">ช่าง</option>
+        </select>
+        <select name="room" value={formData.room} onChange={handleChange} required>
+          <option value="">เลือกห้อง</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+        <select name="building" value={formData.building} onChange={handleChange} required>
+          <option value="">เลือกตึก</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+        <button type="submit">ยืนยัน</button>
       </form>
     </div>
   );

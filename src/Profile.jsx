@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import liff from '@line/liff';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
-import './CSS/Profile.css';
 
 function Profile() {
   const [profile, setProfile] = useState(null);
@@ -13,29 +12,26 @@ function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        console.log("🚀 เริ่มโหลด LIFF...");
         await liff.init({ liffId: '2007355122-xBNrkXmM' });
 
         if (!liff.isLoggedIn()) {
-          console.log("🔑 ยังไม่ login → กำลัง redirect...");
           liff.login();
           return;
         }
 
         const userProfile = await liff.getProfile();
-        console.log("👤 userProfile:", userProfile);
-
         const userId = userProfile.userId;
-        const docRef = doc(db, "users", userId);
+
+        const docRef = doc(db, 'users', userId);
         const docSnap = await getDoc(docRef);
 
-        if (!docSnap.exists()) {
-          console.warn("⚠️ ไม่มีข้อมูลในฐานข้อมูลสำหรับ UID:", userId);
-          navigate('/register');
+        if (docSnap.exists()) {
+          setProfile({ ...docSnap.data(), uid: userId });
+        } else {
+          navigate('/register'); // ไปหน้าลงทะเบียนถ้าไม่มีข้อมูล
           return;
         }
 
-        setProfile({ ...docSnap.data(), uid: userId });
         setLoading(false);
       } catch (err) {
         console.error("❌ เกิดข้อผิดพลาด:", err);
