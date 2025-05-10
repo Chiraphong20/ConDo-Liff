@@ -28,16 +28,14 @@ function Profile() {
         const userId = userProfile.userId;
         const docRef = doc(db, "users", userId);
         const docSnap = await getDoc(docRef);
-        console.log("📦 docSnap.exists:", docSnap.exists());
 
-        if (docSnap.exists()) {
-          setProfile({ ...docSnap.data(), uid: userId });
-        } else {
+        if (!docSnap.exists()) {
           console.warn("⚠️ ไม่มีข้อมูลในฐานข้อมูลสำหรับ UID:", userId);
           navigate('/register');
           return;
         }
 
+        setProfile({ ...docSnap.data(), uid: userId });
         setLoading(false);
       } catch (err) {
         console.error("❌ เกิดข้อผิดพลาด:", err);
