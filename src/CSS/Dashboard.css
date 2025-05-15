@@ -1,0 +1,66 @@
+
+.custom-header {
+  width: 100%;        
+  background-color: #94B9FF;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 60px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 1000;      
+  position: fixed;    
+  top: 0;
+  left: 0;
+}
+
+.custom-header-title {
+  color: white !important;
+  margin: 0;
+}
+
+.site-layout-background {
+  background-color: #2C2C2C !important;
+  height: 100vh;
+  padding-top: 20px;
+  margin-left: 0;      
+  left: 0;            
+  position: fixed;    
+  top: 60px;         
+  width: 220px;      
+  z-index: 1000;
+}
+.ant-menu {
+  background-color: #2C2C2C;
+  border-right: none;
+}
+
+.ant-menu-item {
+  color: white !important;
+  font-weight: 500;
+  padding-left: 24px !important;
+}
+
+.ant-menu-item-selected {
+  background-color: #3e4a62 !important; 
+  color: white !important;
+}
+
+.ant-menu-item:hover {
+  background-color: #3e4a62 !important;
+  color: white !important;
+}
+
+.custom-content {
+  background-color: #f4f6f8;
+  margin-left:-100%;
+
+}
+
+.custom-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}

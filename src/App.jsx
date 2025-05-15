@@ -7,7 +7,8 @@ import BillDetail from './BillDetail';
 import Register from './Register';
 import Meet from './Meet';
 import Status from './Status';
-
+import Dashboard from './Dashboard';
+import CondoRoom from './CondoRoom';
 function App() {
   return (
     <Router>
@@ -20,6 +21,11 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/meet" element={<Meet />} />
         <Route path="/status" element={<Status />} />
+        <Route path="/dashboard/*" element={<Dashboard />} />
+
+
+
+
 
 
       </Routes>

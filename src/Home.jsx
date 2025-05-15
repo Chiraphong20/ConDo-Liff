@@ -12,7 +12,7 @@ function Home() {
         <a href="/register" className="button">ลงทะเบียน</a>
         <a href="/meet" className="button">จองห้องประชุม</a>
         <a href="/status" className="button">ติดตามสถานะ</a>
-        <a href="Layout.html" className="button">นิติห้อง</a>
+        <a href="/dashboard" className="button">นิติห้อง</a>
         <a href="CondoPayment.html" className="button">คนค้างชำระ</a>
       </div>
     </div>
