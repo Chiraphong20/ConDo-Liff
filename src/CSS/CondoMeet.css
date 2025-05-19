@@ -1,0 +1,52 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  font-family: 'Kanit', sans-serif;
+  background-color: #f5f5f5;
+}
+.meeting-container {
+  text-align: center;
+  padding: 20px;
+    width: 87vw;
+
+}
+
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 350px);
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+  width: 87vw;
+}
+
+.room-card {
+  background-color: #ccc;
+  padding: 15px;
+  border-radius: 10px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.room-card.booked {
+  background-color: #ff6666;
+  color: white;
+}
+
+.time {
+  font-size: 14px;
+}
+
+.room-id {
+  font-size: 18px;
+  margin: 8px 0;
+}
+.modal-content p {
+  margin: 12px 0;
+  text-align: left;
+}

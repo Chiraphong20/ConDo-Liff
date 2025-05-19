@@ -1,66 +1,45 @@
+/* ให้ Layout เต็มหน้าจอ */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Kanit', sans-serif;
+  
 
+}
+
+/* Layout หลักของ Dashboard */
+.ant-layout {
+  height: 100vh;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+/* Header ด้านบน */
 .custom-header {
-  width: 100%;        
-  background-color: #94B9FF;
-  padding: 0 24px;
+  background: #fff;
+  padding: 0;
   display: flex;
   align-items: center;
-  height: 60px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  z-index: 1000;      
-  position: fixed;    
-  top: 0;
-  left: 0;
 }
 
+/* ชื่อ Title ด้านบน */
 .custom-header-title {
-  color: white !important;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: 0;
+  font-weight: bold;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: #F5F5F5;
+  min-height: 93vh;
+  width: 85vw;
+  box-sizing: border-box;
   margin: 0;
-}
-
-.site-layout-background {
-  background-color: #2C2C2C !important;
-  height: 100vh;
-  padding-top: 20px;
-  margin-left: 0;      
-  left: 0;            
-  position: fixed;    
-  top: 60px;         
-  width: 220px;      
-  z-index: 1000;
-}
-.ant-menu {
-  background-color: #2C2C2C;
-  border-right: none;
-}
-
-.ant-menu-item {
-  color: white !important;
-  font-weight: 500;
-  padding-left: 24px !important;
-}
-
-.ant-menu-item-selected {
-  background-color: #3e4a62 !important; 
-  color: white !important;
-}
-
-.ant-menu-item:hover {
-  background-color: #3e4a62 !important;
-  color: white !important;
-}
-
-.custom-content {
-  background-color: #f4f6f8;
-  margin-left:-100%;
-
-}
-
-.custom-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.custom-content::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.2);
-  border-radius: 4px;
 }

@@ -8,7 +8,9 @@ import Register from './Register';
 import Meet from './Meet';
 import Status from './Status';
 import Dashboard from './Dashboard';
-import CondoRoom from './CondoRoom';
+import Machanic from './machanic';
+import Machanicstatus from './machanicstatus';
+import MachanicCase from './machaniccase';
 function App() {
   return (
     <Router>
@@ -22,6 +24,9 @@ function App() {
         <Route path="/meet" element={<Meet />} />
         <Route path="/status" element={<Status />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
+        <Route path="/machaniccase" element={<MachanicCase />} />
+        <Route path="/machanicstatus" element={<Machanicstatus />} />
+        <Route path="/machanic" element={<Machanic />} />
 
 
 

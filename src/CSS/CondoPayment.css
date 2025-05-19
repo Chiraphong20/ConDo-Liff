@@ -1,0 +1,154 @@
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: #f4f4f4;
+  min-height: 100vh;
+  font-family: 'Kanit', sans-serif;
+
+}
+
+.sectionheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background: #D9D9D9;
+  border-radius: 16px;
+  padding: 5px 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  width: 15%; /* กว้าง 80% ของ container */
+  max-width: 500px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
+  margin-left: 20px;
+}
+.Group {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  padding-right: 20px;
+}
+
+.btn-add {
+  padding: 12px 24px;
+  font-size: 18px;
+  width: 100%; /* กว้าง 80% ของ container */
+  max-width: 700px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
+  height: 40px;
+  border-radius: 16px;
+  background-color:#22C38A ;
+  font-family: 'Kanit', sans-serif;
+  font-weight: bold;
+  margin-right: 20px;
+}
+
+.btn-edit {
+  padding: 12px 24px;
+  font-size: 18px;
+  width: 50%; /* กว้าง 80% ของ container */
+  max-width: 700px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
+  height: 40px;
+  border-radius: 16px;
+  background-color:#22C38A ;
+  font-family: 'Kanit', sans-serif;
+  font-weight: bold;
+  margin-right: 20px;
+
+}
+.btn-delete {
+  padding: 12px 24px;
+  font-size: 18px;
+  width: 50%; /* กว้าง 80% ของ container */
+  max-width: 700px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
+  height: 40px;
+  border-radius: 16px;
+  background-color:#EC4A3B ;
+  font-family: 'Kanit', sans-serif;
+  font-weight: bold;
+  
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: none;
+  margin-left: 10px;
+  font-size: 14px;
+}
+
+.room-section {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  gap: 20px;
+}
+.room-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.room-card {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  height: 250px;
+  position: relative;
+}
+
+.status-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  color: red;
+  font-weight: bold;
+}
+
+.red-dot {
+  width: 20px;
+  height: 20px;
+  background-color: red;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.room-card img {
+  width: 60px;
+  margin-bottom: 10px;
+}
+
+.room-card b {
+  display: block;
+  margin-top: 8px;
+}
+
+.modal-buttons {
+  text-align: right;
+  margin-top: 20px;
+  display: flex;
+}
+
+.cancel {
+  background: #ccc;
+  margin-right: 10px;
+}
+
+.save {
+  background: #4CAF50;
+  color: white;
+}

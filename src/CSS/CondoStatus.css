@@ -60,11 +60,12 @@
 }
 
 .room-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* จัดรูปและเนื้อหาตรงกลางแนวแกน X */
-  justify-content: center; /* ถ้าต้องการจัดกลางแนว Y ด้วย */
-  text-align: center; /* จัดข้อความใต้รูปให้อยู่ตรงกลาง */
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  height: 250px;
 }
 
 .room-card img {

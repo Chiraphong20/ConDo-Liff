@@ -7,6 +7,12 @@ const CondoRoom = () => {
   const [rooms, setRooms] = useState([
     { room: '115', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
     { room: '116', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
+    { room: '117', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
+    { room: '118', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
+ 
+
+
+
   ]);
 
   const [form] = Form.useForm();
@@ -28,10 +34,10 @@ const CondoRoom = () => {
           <img src="https://cdn-icons-png.flaticon.com/512/54/54481.png" width="20" height="20" alt="search" />
           <Input placeholder="ค้นหา..." bordered={false} />
         </div>
-        <h1>ข้อมูลห้อง</h1>
-        <Button id="addRoomBtn" onClick={() => setModalVisible(true)}>
-          เพิ่มห้อง +
-        </Button>
+       <p>ข้อมูลห้อง</p>
+    <Button className="btn-large" onClick={() => setModalVisible(true)}>
+  เพิ่มห้อง +
+</Button>
       </div>
 
       <div className="room-section">

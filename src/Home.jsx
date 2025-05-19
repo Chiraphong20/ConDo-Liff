@@ -14,6 +14,9 @@ function Home() {
         <a href="/status" className="button">ติดตามสถานะ</a>
         <a href="/dashboard" className="button">นิติห้อง</a>
         <a href="CondoPayment.html" className="button">คนค้างชำระ</a>
+        <a href="/machanicstatus" className="button">ติดตามสถานะช่าง</a>
+        <a href="/machaniccase" className="button">เคสซ่อมแซม</a>
+        <a href="/machanic" className="button">รายละเอียดคำสั่งซ่อม</a>
       </div>
     </div>
   );
