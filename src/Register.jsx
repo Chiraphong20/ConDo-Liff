@@ -40,41 +40,42 @@ const Register = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!userId) {
-      alert("ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่");
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!userId) {
+    alert("ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่");
+    return;
+  }
 
-    try {
-      await setDoc(doc(db, 'users', userId), {
-        name: formData.fullname + ' ' + formData.surname,
-        phone: formData.phone,
-        email: formData.email,
+  try {
+    await setDoc(doc(db, 'users', userId), {
+      name: formData.fullname + ' ' + formData.surname,
+      phone: formData.phone,
+      email: formData.email,
+      role: formData.role,
+      room: formData.room,
+      building: formData.building,
+    });
+
+    // เรียก API ไปที่ Firebase Function เพื่อผูก Rich Menu
+    await fetch('https://<YOUR_FIREBASE_FUNCTION_URL>/api/link-richmenu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
         role: formData.role,
-        room: formData.room,
-        building: formData.building,
-      });
+      }),
+    });
 
-      // 🔁 เรียก API ไปที่ Firebase Function เพื่อผูก Rich Menu
-      await fetch('https://console.firebase.google.com/project/condoconnect-ae133/usage/details>/api/link-richmenu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          role: formData.role,
-        }),
-      });
+    alert("✅ ลงทะเบียนสำเร็จ");
+    // ไม่ต้อง navigate ไปหน้าอื่น
+    // navigate('/profile'); <== ลบหรือคอมเมนต์ตรงนี้ออก
 
-      alert("✅ ลงทะเบียนสำเร็จ");
-      navigate('/profile');
-    } catch (err) {
-      console.error("❌ บันทึกไม่สำเร็จ:", err);
-      alert("เกิดข้อผิดพลาดในการลงทะเบียน");
-    }
-  };
-
+  } catch (err) {
+    console.error("❌ บันทึกไม่สำเร็จ:", err);
+    alert("เกิดข้อผิดพลาดในการลงทะเบียน");
+  }
+};
   return (
     <div className="container">
       <h2>ลงทะเบียน</h2>
