@@ -18,7 +18,7 @@ const Register = () => {
   const [displayName, setDisplayName] = useState('');
   const navigate = useNavigate();
 
- useEffect(() => {
+useEffect(() => {
   const initLiff = async () => {
     try {
       await liff.init({ liffId: '2007355122-xBNrkXmM', withLoginOnExternalBrowser: true });
@@ -29,17 +29,16 @@ const Register = () => {
       }
 
       const profile = await liff.getProfile();
-      console.log('LIFF profile:', profile);
+      console.log(profile);
       setUserId(profile.userId);
       setDisplayName(profile.displayName);
-    } catch (err) {
-      console.error('LIFF init error:', err);
-      alert('ไม่สามารถเชื่อมต่อกับ LINE ได้\n' + err.message);
+    } catch (error) {
+      console.error(error);
+      alert('Error: ' + error.message);
     }
   };
   initLiff();
 }, []);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
