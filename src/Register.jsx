@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import liff from '@line/liff';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,57 +14,56 @@ const Register = () => {
     room: '',
     building: '',
   });
+
   const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const initLiff = async () => {
-      await liff.init({ liffId: 'YOUR_LIFF_ID' });
+  const initLiff = async () => {
+    try {
+      await liff.init({ liffId: '2007355122-xBNrkXmM' });
+      console.log("LIFF initialized");
       if (!liff.isLoggedIn()) {
+        console.log("Not logged in, redirecting...");
         liff.login();
         return;
       }
       const profile = await liff.getProfile();
+      console.log("Profile:", profile);
       setUserId(profile.userId);
-    };
-    initLiff();
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    } catch (err) {
+      console.error("LIFF error:", err);
+    }
   };
+  initLiff();
+}, []);
 
- 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!userId) {
-    alert('ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่');
-    return;
-  }
 
-  try {
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
-
-    if (userSnap.exists()) {
-      alert('คุณได้ลงทะเบียนไว้แล้ว ไม่สามารถสมัครซ้ำได้');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!userId) {
+      alert("ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่");
       return;
     }
 
-    await setDoc(userRef, {
-      name: `${formData.fullname} ${formData.surname}`,
-      phone: formData.phone,
-      email: formData.email,
-      role: formData.role,
-      room: formData.room,
-      building: formData.building,
-    });
-    alert('✅ ลงทะเบียนสำเร็จ');
-  } catch (error) {
-    console.error('❌ บันทึกไม่สำเร็จ:', error);
-    alert('เกิดข้อผิดพลาดในการลงทะเบียน');
-  }
-}
+    try {
+      await setDoc(doc(db, 'users', userId), {
+        name: formData.fullname + ' ' + formData.surname,
+        phone: formData.phone,
+        email: formData.email,
+        role: formData.role,
+        room: formData.room,
+        building: formData.building,
+      });
+
+      alert("✅ ลงทะเบียนสำเร็จ");
+      navigate('/profile');
+    } catch (err) {
+      console.error("❌ บันทึกไม่สำเร็จ:", err);
+      alert("เกิดข้อผิดพลาดในการลงทะเบียน");
+    }
+  };
+
   return (
     <div className="container">
       <h2>ลงทะเบียน</h2>
