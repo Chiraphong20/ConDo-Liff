@@ -1,9 +1,7 @@
-// Register.jsx
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import liff from '@line/liff';
-import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -15,13 +13,11 @@ const Register = () => {
     room: '',
     building: '',
   });
-
   const [userId, setUserId] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const initLiff = async () => {
-      await liff.init({ liffId: '2007355122-xBNrkXmM' });
+      await liff.init({ liffId: 'YOUR_LIFF_ID' });
       if (!liff.isLoggedIn()) {
         liff.login();
         return;
@@ -34,48 +30,31 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (!userId) {
-    alert("ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่");
-    return;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!userId) {
+      alert('ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่');
+      return;
+    }
 
-  try {
-    await setDoc(doc(db, 'users', userId), {
-      name: formData.fullname + ' ' + formData.surname,
-      phone: formData.phone,
-      email: formData.email,
-      role: formData.role,
-      room: formData.room,
-      building: formData.building,
-    });
-
-    // เรียก API ไปที่ Firebase Function เพื่อผูก Rich Menu
-    await fetch('https://<YOUR_FIREBASE_FUNCTION_URL>/api/link-richmenu', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId,
+    try {
+      await setDoc(doc(db, 'users', userId), {
+        name: `${formData.fullname} ${formData.surname}`,
+        phone: formData.phone,
+        email: formData.email,
         role: formData.role,
-      }),
-    });
-
-    alert("✅ ลงทะเบียนสำเร็จ");
-    // ไม่ต้อง navigate ไปหน้าอื่น
-    // navigate('/profile'); <== ลบหรือคอมเมนต์ตรงนี้ออก
-
-  } catch (err) {
-    console.error("❌ บันทึกไม่สำเร็จ:", err);
-    alert("เกิดข้อผิดพลาดในการลงทะเบียน");
-  }
-};
+        room: formData.room,
+        building: formData.building,
+      });
+      alert('✅ ลงทะเบียนสำเร็จ');
+    } catch (error) {
+      console.error('❌ บันทึกไม่สำเร็จ:', error);
+      alert('เกิดข้อผิดพลาดในการลงทะเบียน');
+    }
+  };
   return (
     <div className="container">
       <h2>ลงทะเบียน</h2>
