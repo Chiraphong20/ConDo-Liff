@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from './firebase';
 import liff from '@line/liff';
 
@@ -33,28 +33,37 @@ const Register = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!userId) {
-      alert('ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่');
+ 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!userId) {
+    alert('ยังไม่สามารถระบุผู้ใช้ได้ กรุณาลองใหม่');
+    return;
+  }
+
+  try {
+    const userRef = doc(db, 'users', userId);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      alert('คุณได้ลงทะเบียนไว้แล้ว ไม่สามารถสมัครซ้ำได้');
       return;
     }
 
-    try {
-      await setDoc(doc(db, 'users', userId), {
-        name: `${formData.fullname} ${formData.surname}`,
-        phone: formData.phone,
-        email: formData.email,
-        role: formData.role,
-        room: formData.room,
-        building: formData.building,
-      });
-      alert('✅ ลงทะเบียนสำเร็จ');
-    } catch (error) {
-      console.error('❌ บันทึกไม่สำเร็จ:', error);
-      alert('เกิดข้อผิดพลาดในการลงทะเบียน');
-    }
-  };
+    await setDoc(userRef, {
+      name: `${formData.fullname} ${formData.surname}`,
+      phone: formData.phone,
+      email: formData.email,
+      role: formData.role,
+      room: formData.room,
+      building: formData.building,
+    });
+    alert('✅ ลงทะเบียนสำเร็จ');
+  } catch (error) {
+    console.error('❌ บันทึกไม่สำเร็จ:', error);
+    alert('เกิดข้อผิดพลาดในการลงทะเบียน');
+  }
+}
   return (
     <div className="container">
       <h2>ลงทะเบียน</h2>
