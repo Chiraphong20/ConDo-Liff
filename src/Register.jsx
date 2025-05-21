@@ -21,7 +21,7 @@ const Register = () => {
   useEffect(() => {
     const initLiff = async () => {
       try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' }); // 🔁 เปลี่ยนเป็นของจริง
+        await liff.init({ liffId: '2007355122-xBNrkXmM' }); // ใส่ LIFF ID จริง
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
@@ -33,7 +33,7 @@ const Register = () => {
         setDisplayName(profile.displayName);
       } catch (err) {
         console.error('LIFF init error:', err);
-        alert('ไม่สามารถเชื่อมต่อกับ LINE ได้');
+        alert('❌ ไม่สามารถเชื่อมต่อกับ LINE ได้');
       }
     };
     initLiff();
@@ -48,17 +48,17 @@ const Register = () => {
     e.preventDefault();
 
     if (!userId) {
-      alert("ยังไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE");
+      alert("⚠️ ไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE");
       return;
     }
 
     if (formData.role === 'technician' && formData.keycode !== '12345') {
-      alert("รหัสช่างไม่ถูกต้อง");
+      alert("🚫 รหัสช่างไม่ถูกต้อง");
       return;
     }
 
     try {
-      await setDoc(doc(db, 'users', userId), {
+      const userData = {
         name: formData.fullname,
         phone: formData.phone,
         room: formData.room,
@@ -66,30 +66,36 @@ const Register = () => {
         role: formData.role,
         keycode: formData.role === 'technician' ? formData.keycode : '',
         displayName,
-      });
+      };
+
+      console.log("📤 Sending user data:", userData);
+
+      await setDoc(doc(db, 'users', userId), userData);
 
       alert('✅ ลงทะเบียนสำเร็จ');
 
-      // 🔁 เปิด Rich Menu ตาม Role
+      // ส่งข้อความต้อนรับตาม role
+      let welcomeMessage = '';
       switch (formData.role) {
         case 'resident':
-          await liff.sendMessages([{ type: 'text', text: 'ยินดีต้อนรับลูกบ้าน 👤' }]);
-          liff.closeWindow(); // หรือ navigate ไปหน้าอื่น
+          welcomeMessage = 'ยินดีต้อนรับลูกบ้าน 👤';
           break;
         case 'juristic':
-          await liff.sendMessages([{ type: 'text', text: 'สวัสดีนิติบุคคล 🧑‍💼' }]);
-          liff.closeWindow();
+          welcomeMessage = 'สวัสดีนิติบุคคล 🧑‍💼';
           break;
         case 'technician':
-          await liff.sendMessages([{ type: 'text', text: 'เข้าสู่ระบบช่าง 🔧' }]);
-          liff.closeWindow();
+          welcomeMessage = 'เข้าสู่ระบบช่าง 🔧';
           break;
         default:
-          alert('บทบาทไม่ถูกต้อง');
+          welcomeMessage = 'ลงทะเบียนเรียบร้อย';
       }
+
+      await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
+      liff.closeWindow(); // ปิดหน้าต่าง LINE LIFF
+
     } catch (err) {
       console.error("❌ บันทึกไม่สำเร็จ:", err);
-      alert("เกิดข้อผิดพลาดในการลงทะเบียน");
+      alert("เกิดข้อผิดพลาดในการลงทะเบียน: " + err.message);
     }
   };
 
@@ -97,10 +103,38 @@ const Register = () => {
     <div className="container">
       <h2>ลงทะเบียนผู้ใช้</h2>
       <form onSubmit={handleSubmit}>
-        <input type="text" name="fullname" placeholder="ชื่อ-นามสกุล" onChange={handleChange} required />
-        <input type="tel" name="phone" placeholder="เบอร์โทร" onChange={handleChange} required />
-        <input type="text" name="room" placeholder="ห้อง" onChange={handleChange} required />
-        <input type="text" name="building" placeholder="ตึก" onChange={handleChange} required />
+        <input
+          type="text"
+          name="fullname"
+          placeholder="ชื่อ-นามสกุล"
+          value={formData.fullname}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="tel"
+          name="phone"
+          placeholder="เบอร์โทร"
+          value={formData.phone}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          name="room"
+          placeholder="ห้อง"
+          value={formData.room}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="text"
+          name="building"
+          placeholder="ตึก"
+          value={formData.building}
+          onChange={handleChange}
+          required
+        />
 
         <select name="role" value={formData.role} onChange={handleChange} required>
           <option value="">เลือกบทบาท</option>
@@ -109,7 +143,6 @@ const Register = () => {
           <option value="technician">ช่าง</option>
         </select>
 
-        {/* แสดง Keycode เฉพาะตอนเลือกเป็นช่าง */}
         {formData.role === 'technician' && (
           <input
             type="password"
