@@ -21,7 +21,7 @@ const Register = () => {
   useEffect(() => {
     const initLiff = async () => {
       try {
-        await liff.init({ liffId: 'YOUR_LIFF_ID' }); // 🔁 เปลี่ยนเป็นของจริง
+        await liff.init({ liffId: '2007355122-xBNrkXmM' }); // 🔁 เปลี่ยนเป็นของจริง
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
