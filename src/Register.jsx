@@ -18,26 +18,36 @@ const Register = () => {
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
+useEffect(() => {
   const initLiff = async () => {
     try {
+      console.log("🔧 Initializing LIFF...");
       await liff.init({ liffId: '2007355122-xBNrkXmM' });
-      console.log("LIFF initialized");
+
       if (!liff.isLoggedIn()) {
-        console.log("Not logged in, redirecting...");
+        console.log("🔁 Logging in...");
         liff.login();
         return;
       }
+
       const profile = await liff.getProfile();
-      console.log("Profile:", profile);
+      console.log("✅ LIFF Profile:", profile); // 🔍 ดูว่ามี userId หรือไม่
       setUserId(profile.userId);
     } catch (err) {
-      console.error("LIFF error:", err);
+      console.error("❌ LIFF init error:", err);
     }
   };
   initLiff();
 }, []);
 
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

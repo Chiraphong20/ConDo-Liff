@@ -9,7 +9,6 @@ app.use(express.json());
 
 const CHANNEL_ACCESS_TOKEN = 'qIvNO1l0vxERUs0TwZWrY4AtcpuR9FEGZLkXLvue0ooF1NxYNnnBOSfGNVdLB0i2T4ymCXsr/9mRSGdAjixhoHwjPFwA2eEzz0URvWSsFE8/PwH+9nHNEmjZ//s3CEwUDHhvW6vKwdutJ6w6M3cufAdB04t89/1O/w1cDnyilFU=';
 
-// แผนผังบทบาท → Rich Menu ID
 const RICH_MENU_IDS = {
   A: 'richmenu-583c72d4a3a539fa0c78e50a54931fc4',     // ลูกบ้าน
   B: 'richmenu-8dc7bd9f8b30b2a64e9605f765f729f0',     // นิติบุคคล
