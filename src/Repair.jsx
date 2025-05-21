@@ -1,23 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CSS/Repair.css';
+import { db } from './firebase';
+import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import liff from '@line/liff';
 
 function Repair() {
   const [activeTab, setActiveTab] = useState('repair');
+  const [userId, setUserId] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const initLiffAndFetchUser = async () => {
+      try {
+        await liff.init({ liffId: '2007355122-xBNrkXmM' });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        setUserId(profile.userId);
+
+        // ดึงข้อมูลผู้ใช้จาก Firestore
+        const userDocRef = doc(db, 'users', profile.userId);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          setUserProfile(userDocSnap.data());
+        } else {
+          alert('ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาลงทะเบียนก่อน');
+        }
+      } catch (err) {
+        console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', err);
+      }
+    };
+
+    initLiffAndFetchUser();
+  }, []);
+
+  const handleSubmit = async (e, type) => {
+    e.preventDefault();
+    const form = e.target;
+    const title = form.querySelector('select').value;
+    const description = form.querySelector('textarea').value;
+
+    if (!userId || !userProfile) {
+      alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, type === 'repair' ? 'repairs' : 'complaints'), {
+        title,
+        description,
+        type,
+        userId,
+        userInfo: {
+          name: userProfile.name,
+          phone: userProfile.phone,
+          email: userProfile.email,
+          role: userProfile.role,
+          room: userProfile.room,
+          building: userProfile.building,
+        },
+        createdAt: serverTimestamp(),
+      });
+
+      alert('✅ ส่งข้อมูลสำเร็จ');
+      form.reset();
+    } catch (error) {
+      console.error('❌ เกิดข้อผิดพลาด:', error);
+      alert('ส่งข้อมูลไม่สำเร็จ');
+    }
+  };
 
   return (
     <div>
       {/* ปุ่มสลับ Tab */}
       <div className="tab-bar">
-        <div
-          className={`tab ${activeTab === 'repair' ? 'active' : ''}`}
-          onClick={() => setActiveTab('repair')}
-        >
+        <div className={`tab ${activeTab === 'repair' ? 'active' : ''}`} onClick={() => setActiveTab('repair')}>
           แจ้งซ่อม
         </div>
-        <div
-          className={`tab ${activeTab === 'complaint' ? 'active' : ''}`}
-          onClick={() => setActiveTab('complaint')}
-        >
+        <div className={`tab ${activeTab === 'complaint' ? 'active' : ''}`} onClick={() => setActiveTab('complaint')}>
           ร้องเรียน
         </div>
       </div>
@@ -26,26 +89,24 @@ function Repair() {
       {activeTab === 'repair' && (
         <div className="container tab-content active">
           <h2>แจ้งซ่อม</h2>
-          <form>
+          <form onSubmit={(e) => handleSubmit(e, 'repair')}>
             <label>หัวข้อ</label>
             <select required>
               <option value="">..................</option>
-              <option value="A">ซ่อมประตู</option>
-              <option value="B">ไฟฟ้า</option>
-              <option value="C">ประปา</option>
+              <option value="ซ่อมประตู">ซ่อมประตู</option>
+              <option value="ไฟฟ้า">ไฟฟ้า</option>
+              <option value="ประปา">ประปา</option>
             </select>
 
             <label>คำอธิบายเพิ่มเติม</label>
             <div className="textarea-wrapper">
-              <textarea rows="20" placeholder="อธิบายปัญหา..."></textarea>
+              <textarea rows="6" placeholder="อธิบายปัญหา..." required></textarea>
             </div>
 
             <div className="uploadpic">
               <label>อัพโหลดวิดีโอ / รูปภาพ</label>
               <input type="file" accept="image/*,video/*" />
-
               <label>หรือ</label>
-
               <label>ถ่ายรูป / วิดีโอ</label>
               <input type="file" accept="image/*,video/*" capture="environment" />
             </div>
@@ -59,26 +120,24 @@ function Repair() {
       {activeTab === 'complaint' && (
         <div className="container tab-content active">
           <h2>ร้องเรียน</h2>
-          <form>
+          <form onSubmit={(e) => handleSubmit(e, 'complaint')}>
             <label>หัวข้อ</label>
             <select required>
               <option value="">..................</option>
-              <option value="A">นิติบุคคลไม่ให้ความร่วมมือ</option>
-              <option value="B">พฤติกรรมเพื่อนบ้าน</option>
-              <option value="C">อื่น ๆ</option>
+              <option value="นิติบุคคลไม่ให้ความร่วมมือ">นิติบุคคลไม่ให้ความร่วมมือ</option>
+              <option value="พฤติกรรมเพื่อนบ้าน">พฤติกรรมเพื่อนบ้าน</option>
+              <option value="อื่น ๆ">อื่น ๆ</option>
             </select>
 
             <label>คำอธิบายเพิ่มเติม</label>
             <div className="textarea-wrapper">
-              <textarea rows="20" placeholder="อธิบายปัญหา..."></textarea>
+              <textarea rows="6" placeholder="อธิบายปัญหา..." required></textarea>
             </div>
 
             <div className="uploadpic">
               <label>อัพโหลดวิดีโอ / รูปภาพ</label>
               <input type="file" accept="image/*,video/*" />
-
               <label>หรือ</label>
-
               <label>ถ่ายรูป / วิดีโอ</label>
               <input type="file" accept="image/*,video/*" capture="environment" />
             </div>

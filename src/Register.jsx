@@ -1,3 +1,4 @@
+// Register.jsx
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
@@ -54,6 +55,16 @@ const Register = () => {
         role: formData.role,
         room: formData.room,
         building: formData.building,
+      });
+
+      // 🔁 เรียก API ไปที่ Firebase Function เพื่อผูก Rich Menu
+      await fetch('https://console.firebase.google.com/project/condoconnect-ae133/usage/details>/api/link-richmenu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          role: formData.role,
+        }),
       });
 
       alert("✅ ลงทะเบียนสำเร็จ");

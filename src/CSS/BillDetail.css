@@ -29,24 +29,31 @@
       font-size: 14px;
     }
 
-    .status {
-      color: red;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-    }
+.status {
+    font-size: 0.9em;
+    padding: 5px 10px;
+    border-radius: 15px;
+    color: #242424 !important;
+}
 
-    .status::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      background: red;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 6px;
-    }
+
+.status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: red;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+
 
     .total {
       margin-top: 12px;
       font-weight: bold;
     }
+    .status {
+    font-size: 0.9em;
+    padding: 5px 10px;
+    border-radius: 15px;
+}

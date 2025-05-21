@@ -1,116 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './CSS/machanic.css';
-import { Flex, Input, Image, DatePicker } from 'antd';
+import { Input, Image, DatePicker } from 'antd';
+import { db } from './firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import dayjs from 'dayjs';
+import { useNavigate } from 'react-router-dom'; // << เพิ่ม
 
-const { TextArea } = Input;
+const dummyRepairData = {
+  id: 'repair123',
+  room: '116',
+  name: 'สุดหล่อ คนดี',
+  topic: 'ประตูพัง',
+  details: 'มีสนิมเกาะไม่สามารถใช้งานชั่วคราวได้',
+  phone: '0812345678',
+  imageUrl: 'https://s.isanook.com/wo/0/ud/45/228153/228153-20221224084331-ed33440.jpg?ip/resize/w728/q80/jpg',
+};
 
 const Machanic = () => {
   const [formData, setFormData] = useState({
-    room: '',
-    name: '',
-    topic: '',
-    details: '',
-    phone: '',
-    date: null, // เพิ่ม field วันที่
+    date: null,
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
+  const [repairData, setRepairData] = useState(null);
+  const navigate = useNavigate(); // << สำหรับเปลี่ยนหน้า
+
+  useEffect(() => {
+    setRepairData(dummyRepairData);
+  }, []);
 
   const handleDateChange = (date, dateString) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      date: dateString,
-    }));
+    setFormData({ date: dateString });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+
+    if (!formData.date) {
+      alert('กรุณาเลือกวันที่จะเข้าซ่อม');
+      return;
+    }
+
+    try {
+      const repairRef = doc(db, 'repairs', repairData.id);
+      await updateDoc(repairRef, {
+        mechanicDate: formData.date,
+        status: 'scheduled',
+      });
+
+      alert('บันทึกวันที่สำเร็จ');
+      navigate('/dashboard'); // เปลี่ยน path ได้ตามที่คุณต้องการ
+    } catch (error) {
+      console.error('Error updating document:', error);
+      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+    }
   };
+
+  const handleCancel = () => {
+    navigate(-1); // ย้อนกลับ 1 หน้า หรือจะใช้ navigate('/dashboard') ก็ได้
+  };
+
+  if (!repairData) return <p>กำลังโหลด...</p>;
 
   return (
     <div className="container">
       <h2>รายละเอียดการซ่อมแซม</h2>
 
       <form onSubmit={handleSubmit}>
-        <label htmlFor="room">เลขห้อง</label>
-        <input
-          type="text"
-          id="room"
-          name="room"
-          value={formData.room}
-          onChange={handleChange}
-          required
-        />
+        <label>เลขห้อง</label>
+        <Input value={repairData.room} disabled />
 
-        <label htmlFor="name">ชื่อ-นามสกุล</label>
-        <input
-          type="text"
-          id="name"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          required
-        />
+        <label>ชื่อ-นามสกุล</label>
+        <Input value={repairData.name} disabled />
 
-        <label htmlFor="topic">หัวข้อ</label>
-        <input
-          type="text"
-          id="topic"
-          name="topic"
-          value={formData.topic}
-          onChange={handleChange}
-          required
-        />
+        <label>หัวข้อ</label>
+        <Input value={repairData.topic} disabled />
 
-        <label htmlFor="details">รายละเอียด</label>
-        <TextArea
-          id="details"
-          name="details"
-          placeholder="กรอกรายละเอียดเพิ่มเติม"
-          allowClear
-          value={formData.details}
-          onChange={handleChange}
-          required
-        />
+        <label>รายละเอียด</label>
+        <Input.TextArea value={repairData.details} disabled rows={4} />
 
-        <label htmlFor="phone">เบอร์โทรศัพท์</label>
-        <input
-          type="text"
-          id="phone"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          required
-        />
+        <label>เบอร์โทรศัพท์</label>
+        <Input value={repairData.phone} disabled />
 
-        <label htmlFor="date">วันที่จะเข้าซ่อม</label>
+        
+
+        <label>ภาพประกอบ</label>
+        <div style={{ marginTop: '20px' ,marginBottom: '20px'}}>
+  <Image
+    width={200}
+    src={repairData.imageUrl}
+    alt="รูปภาพจากลูกบ้าน"
+  />
+</div>
+        <label>วันที่จะเข้าซ่อม</label>
         <DatePicker
-          id="date"
           style={{ width: '100%' }}
           onChange={handleDateChange}
           format="YYYY-MM-DD"
-        />
-
-        <label htmlFor="media">มีเดียร์</label>
-        <Image
-          width={200}
-          src="https://s.isanook.com/wo/0/ud/45/228153/228153-20221224084331-ed33440.jpg?ip/resize/w728/q80/jpg"
-          alt="แจ้งซ่อม"
+          value={formData.date ? dayjs(formData.date) : null}
         />
 
         <div className="submit">
-          <button type="button" className="buttoncancel">
+          <button type="button" className="buttoncancel" onClick={handleCancel}>
             ยกเลิก
           </button>
           <button type="submit" className="buttonOK">
-            ยืนยัน
+            บันทึกวันที่
           </button>
         </div>
       </form>
