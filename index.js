@@ -11,8 +11,8 @@ const CHANNEL_ACCESS_TOKEN = 'qIvNO1l0vxERUs0TwZWrY4AtcpuR9FEGZLkXLvue0ooF1NxYNn
 
 // แผนผังบทบาท → Rich Menu ID
 const RICH_MENU_IDS = {
-  A: 'RICH_MENU_ID_FOR_RESIDENT',     // ลูกบ้าน
-  B: 'RICH_MENU_ID_FOR_JURISTIC',     // นิติบุคคล
+  A: 'richmenu-583c72d4a3a539fa0c78e50a54931fc4',     // ลูกบ้าน
+  B: 'richmenu-8dc7bd9f8b30b2a64e9605f765f729f0',     // นิติบุคคล
   C: 'RICH_MENU_ID_FOR_TECHNICIAN',   // ช่าง
 };
 
