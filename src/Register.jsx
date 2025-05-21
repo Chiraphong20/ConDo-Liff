@@ -29,14 +29,24 @@ useEffect(() => {
       }
 
       const profile = await liff.getProfile();
-      console.log(profile);
+      const context = liff.getContext();
+
+      console.log('LIFF Profile:', profile);
+      console.log('LIFF Context:', context);
+
+      // ตรวจสอบว่ามี accessToken และส่งข้อความได้ไหม
+      if (!liff.getAccessToken()) {
+        alert("กรุณาเปิดผ่าน LINE และเพิ่มเพื่อนกับ OA ก่อนใช้งาน");
+      }
+
       setUserId(profile.userId);
       setDisplayName(profile.displayName);
-    } catch (error) {
-      console.error(error);
-      alert('Error: ' + error.message);
+    } catch (err) {
+      console.error('LIFF init error:', err);
+      alert('ไม่สามารถเชื่อมต่อกับ LINE ได้\n' + err.message);
     }
   };
+
   initLiff();
 }, []);
   const handleChange = (e) => {
