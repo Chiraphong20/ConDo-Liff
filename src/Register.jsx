@@ -18,26 +18,27 @@ const Register = () => {
   const [displayName, setDisplayName] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const initLiff = async () => {
-      try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' }); // ใส่ LIFF ID จริง
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+ useEffect(() => {
+  const initLiff = async () => {
+    try {
+      await liff.init({ liffId: '2007355122-xBNrkXmM', withLoginOnExternalBrowser: true });
 
-        const profile = await liff.getProfile();
-        console.log('LIFF profile:', profile);
-        setUserId(profile.userId);
-        setDisplayName(profile.displayName);
-      } catch (err) {
-        console.error('LIFF init error:', err);
-        alert('❌ ไม่สามารถเชื่อมต่อกับ LINE ได้');
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
       }
-    };
-    initLiff();
-  }, []);
+
+      const profile = await liff.getProfile();
+      console.log('LIFF profile:', profile);
+      setUserId(profile.userId);
+      setDisplayName(profile.displayName);
+    } catch (err) {
+      console.error('LIFF init error:', err);
+      alert('ไม่สามารถเชื่อมต่อกับ LINE ได้\n' + err.message);
+    }
+  };
+  initLiff();
+}, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
