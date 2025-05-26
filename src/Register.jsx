@@ -84,7 +84,7 @@ const Register = () => {
       await setDoc(doc(db, 'users', userId), userData);
 
       // 🔗 เรียก API ไปยัง backend server
-      await fetch('https://be9e-2405-9800-bc20-123c-c078-454a-e258-d371.ngrok-free.app/register/api/link-richmenu', {
+      await fetch('https://con-do-liff-wel9.vercel.app/register/api/link-richmenu', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, role: formData.role }),
