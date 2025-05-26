@@ -3,7 +3,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const channelAccessToken = 'YOUR_CHANNEL_ACCESS_TOKEN'; // สำคัญมาก
+const channelAccessToken = 'qIvNO1l0vxERUs0TwZWrY4AtcpuR9FEGZLkXLvue0ooF1NxYNnnBOSfGNVdLB0i2T4ymCXsr/9mRSGdAjixhoHwjPFwA2eEzz0URvWSsFE8/PwH+9nHNEmjZ//s3CEwUDHhvW6vKwdutJ6w6M3cufAdB04t89/1O/w1cDnyilFU='; // สำคัญมาก
 
 const roleMenus = {
   resident: 'richmenu-dc6d9ecfe8aeb44ba250f9c18bd8e0c0',

@@ -82,7 +82,6 @@ useEffect(() => {
 
 await setDoc(doc(db, 'users', userId), userData);
 
-// เรียก backend API
 await fetch('/api/link-richmenu', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
