@@ -1,16 +1,15 @@
 const express = require('express');
 const axios = require('axios');
 const dotenv = require('dotenv');
+const cors = require('cors');
 
-dotenv.config();
-
-// โหลด environment variables จาก .env
 dotenv.config();
 
 const app = express();
+
+app.use(cors()); // เปิด CORS
 app.use(express.json());
 
-// โหลด Access Token และ Rich Menu ID จาก .env
 const CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
 const RICH_MENU_IDS = {
@@ -19,7 +18,6 @@ const RICH_MENU_IDS = {
   technician: process.env.TECHNICIAN_MENU_ID,
 };
 
-// 🔗 Endpoint สำหรับเชื่อมโยง Rich Menu ให้กับ user
 app.post('/register/api/link-richmenu', async (req, res) => {
   try {
     const { userId, role } = req.body;
@@ -44,7 +42,6 @@ app.post('/register/api/link-richmenu', async (req, res) => {
     console.log('📡 Calling LINE API:', url);
     console.log('🔑 Using Token:', CHANNEL_ACCESS_TOKEN ? CHANNEL_ACCESS_TOKEN.slice(0, 20) + '...' : 'NOT FOUND');
 
-    // ส่ง request ไปยัง LINE API
     const response = await axios.post(url, {}, {
       headers: {
         'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}`,
@@ -60,7 +57,6 @@ app.post('/register/api/link-richmenu', async (req, res) => {
   }
 });
 
-// เริ่ม server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

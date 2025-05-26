@@ -55,72 +55,84 @@ const Register = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    if (!userId) {
-      alert("⚠️ ไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE");
-      return;
+  if (!userId) {
+    alert("⚠️ ไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE");
+    return;
+  }
+
+  if (formData.role === 'technician' && formData.keycode !== '12345') {
+    alert("🚫 รหัสช่างไม่ถูกต้อง");
+    return;
+  }
+
+  try {
+    const userData = {
+      name: formData.fullname,
+      phone: formData.phone,
+      room: formData.room,
+      building: formData.building,
+      role: formData.role,
+      keycode: formData.role === 'technician' ? formData.keycode : '',
+      displayName,
+    };
+
+    console.log("📤 Sending user data to Firestore:", userData);
+
+    await setDoc(doc(db, 'users', userId), userData);
+
+    // 🔗 เรียก API ไปยัง backend server พร้อม log
+    console.log('🔵 Sending to API:', {
+      url: 'https://con-do-liff-wel9.vercel.app/register/api/link-richmenu',
+      body: { userId, role: formData.role }
+    });
+
+    const response = await fetch('https://con-do-liff-wel9.vercel.app/register/api/link-richmenu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, role: formData.role }),
+    });
+
+    const result = await response.json();
+
+    console.log('🟢 API Response:', result);
+
+    if (!response.ok) {
+      throw new Error(result.message || 'API failed');
     }
 
-    if (formData.role === 'technician' && formData.keycode !== '12345') {
-      alert("🚫 รหัสช่างไม่ถูกต้อง");
-      return;
+    alert('✅ ลงทะเบียนสำเร็จ');
+
+    // 📨 ส่งข้อความต้อนรับ
+    let welcomeMessage = '';
+    switch (formData.role) {
+      case 'resident':
+        welcomeMessage = 'ยินดีต้อนรับลูกบ้าน';
+        break;
+      case 'juristic':
+        welcomeMessage = 'สวัสดีนิติบุคคล';
+        break;
+      case 'technician':
+        welcomeMessage = 'เข้าสู่ระบบช่าง';
+        break;
+      default:
+        welcomeMessage = 'ลงทะเบียนเรียบร้อย';
     }
 
     try {
-      const userData = {
-        name: formData.fullname,
-        phone: formData.phone,
-        room: formData.room,
-        building: formData.building,
-        role: formData.role,
-        keycode: formData.role === 'technician' ? formData.keycode : '',
-        displayName,
-      };
-
-      console.log("📤 Sending user data:", userData);
-
-      await setDoc(doc(db, 'users', userId), userData);
-
-      // 🔗 เรียก API ไปยัง backend server
-      await fetch('https://con-do-liff-wel9.vercel.app/register/api/link-richmenu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, role: formData.role }),
-      });
-
-      alert('✅ ลงทะเบียนสำเร็จ');
-
-      // 📨 ส่งข้อความต้อนรับ
-      let welcomeMessage = '';
-      switch (formData.role) {
-        case 'resident':
-          welcomeMessage = 'ยินดีต้อนรับลูกบ้าน';
-          break;
-        case 'juristic':
-          welcomeMessage = 'สวัสดีนิติบุคคล';
-          break;
-        case 'technician':
-          welcomeMessage = 'เข้าสู่ระบบช่าง';
-          break;
-        default:
-          welcomeMessage = 'ลงทะเบียนเรียบร้อย';
-      }
-
-      
-      try {
-        await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
-      } catch (err) {
-        console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
-      }
-
-      liff.closeWindow();
+      await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
     } catch (err) {
-      console.error("❌ บันทึกไม่สำเร็จ:", err);
-      alert("เกิดข้อผิดพลาดในการลงทะเบียน: " + err.message);
+      console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
     }
-  };
+
+    liff.closeWindow();
+  } catch (err) {
+    console.error("❌ บันทึกไม่สำเร็จ:", err);
+    alert("เกิดข้อผิดพลาดในการลงทะเบียน: " + err.message);
+  }
+};
 
   return (
     <div className="container">
