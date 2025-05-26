@@ -84,7 +84,7 @@ const Register = () => {
       await setDoc(doc(db, 'users', userId), userData);
 
       // 🔗 เรียก API ไปยัง backend server
-      await fetch('http://localhost:3001/api/link-richmenu', {
+      await fetch('https://3d71-2405-9800-bc20-123c-c078-454a-e258-d371.ngrok-free.app/api/link-richmenu', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, role: formData.role }),
@@ -96,26 +96,26 @@ const Register = () => {
       let welcomeMessage = '';
       switch (formData.role) {
         case 'resident':
-          welcomeMessage = 'ยินดีต้อนรับลูกบ้าน 👤';
+          welcomeMessage = 'ยินดีต้อนรับลูกบ้าน';
           break;
         case 'juristic':
-          welcomeMessage = 'สวัสดีนิติบุคคล 🧑‍💼';
+          welcomeMessage = 'สวัสดีนิติบุคคล';
           break;
         case 'technician':
-          welcomeMessage = 'เข้าสู่ระบบช่าง 🔧';
+          welcomeMessage = 'เข้าสู่ระบบช่าง';
           break;
         default:
           welcomeMessage = 'ลงทะเบียนเรียบร้อย';
       }
 
-      // ✅ ส่งข้อความผ่าน LIFF (ห่อด้วย try/catch กัน error)
+      
       try {
         await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
       } catch (err) {
         console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
       }
 
-      liff.closeWindow(); // ✅ ปิดหน้าต่าง LINE LIFF
+      liff.closeWindow();
     } catch (err) {
       console.error("❌ บันทึกไม่สำเร็จ:", err);
       alert("เกิดข้อผิดพลาดในการลงทะเบียน: " + err.message);
