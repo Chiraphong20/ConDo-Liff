@@ -18,37 +18,38 @@ const Register = () => {
   const [displayName, setDisplayName] = useState('');
   const navigate = useNavigate();
 
-useEffect(() => {
-  const initLiff = async () => {
-    try {
-      await liff.init({ liffId: '2007355122-xBNrkXmM', withLoginOnExternalBrowser: true });
+  useEffect(() => {
+    const initLiff = async () => {
+      try {
+        await liff.init({ liffId: '2007355122-xBNrkXmM', withLoginOnExternalBrowser: true });
 
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        const context = liff.getContext();
+        const accessToken = liff.getAccessToken();
+
+        console.log('LIFF Profile:', profile);
+        console.log('LIFF Context:', context);
+
+        if (!accessToken) {
+          alert('⚠️ กรุณาเปิดลิงก์ผ่านแอป LINE และเพิ่มเพื่อนกับ OA ก่อนใช้งาน');
+        }
+
+        setUserId(profile.userId);
+        setDisplayName(profile.displayName);
+      } catch (err) {
+        console.error('LIFF init error:', err);
+        alert('ไม่สามารถเชื่อมต่อกับ LINE ได้\n' + err.message);
       }
+    };
 
-      const profile = await liff.getProfile();
-      const context = liff.getContext();
+    initLiff();
+  }, []);
 
-      console.log('LIFF Profile:', profile);
-      console.log('LIFF Context:', context);
-
-      // ตรวจสอบว่ามี accessToken และส่งข้อความได้ไหม
-      if (!liff.getAccessToken()) {
-        alert("กรุณาเปิดผ่าน LINE และเพิ่มเพื่อนกับ OA ก่อนใช้งาน");
-      }
-
-      setUserId(profile.userId);
-      setDisplayName(profile.displayName);
-    } catch (err) {
-      console.error('LIFF init error:', err);
-      alert('ไม่สามารถเชื่อมต่อกับ LINE ได้\n' + err.message);
-    }
-  };
-
-  initLiff();
-}, []);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -80,21 +81,18 @@ useEffect(() => {
 
       console.log("📤 Sending user data:", userData);
 
-await setDoc(doc(db, 'users', userId), userData);
+      await setDoc(doc(db, 'users', userId), userData);
 
-await fetch('/api/link-richmenu', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    userId: liff.getContext().userId,
-    role: 'resident', // หรือ 'juristic', 'technician'
-  }),
-});
-
+      // 🔗 เรียก API ไปยัง backend server
+      await fetch('http://localhost:3001/api/link-richmenu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, role: formData.role }),
+      });
 
       alert('✅ ลงทะเบียนสำเร็จ');
 
-      // ส่งข้อความต้อนรับตาม role
+      // 📨 ส่งข้อความต้อนรับ
       let welcomeMessage = '';
       switch (formData.role) {
         case 'resident':
@@ -110,9 +108,14 @@ await fetch('/api/link-richmenu', {
           welcomeMessage = 'ลงทะเบียนเรียบร้อย';
       }
 
-      await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
-      liff.closeWindow(); // ปิดหน้าต่าง LINE LIFF
+      // ✅ ส่งข้อความผ่าน LIFF (ห่อด้วย try/catch กัน error)
+      try {
+        await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
+      } catch (err) {
+        console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
+      }
 
+      liff.closeWindow(); // ✅ ปิดหน้าต่าง LINE LIFF
     } catch (err) {
       console.error("❌ บันทึกไม่สำเร็จ:", err);
       alert("เกิดข้อผิดพลาดในการลงทะเบียน: " + err.message);
