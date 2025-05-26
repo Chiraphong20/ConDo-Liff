@@ -1,7 +1,7 @@
 // src/components/Register.jsx
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from './firebase'; // ปรับ path ให้ตรงกับโปรเจกต์
+import { db } from './firebase'; 
 import liff from '@line/liff';
 import { useNavigate } from 'react-router-dom';
 
