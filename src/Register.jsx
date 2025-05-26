@@ -85,8 +85,12 @@ await setDoc(doc(db, 'users', userId), userData);
 await fetch('/api/link-richmenu', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ userId, role: formData.role }),
+  body: JSON.stringify({
+    userId: liff.getContext().userId,
+    role: 'resident', // หรือ 'juristic', 'technician'
+  }),
 });
+
 
       alert('✅ ลงทะเบียนสำเร็จ');
 
