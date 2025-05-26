@@ -89,11 +89,12 @@ const Register = () => {
         body: { userId, role: formData.role }
       });
 
-      const response = await fetch('https://con-do-liff-wel9.vercel.app/register/api/link-richmenu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, role: formData.role }),
-      });
+ const response = await fetch('https://con-do-liff-wel9.vercel.app/register/api/link-richmenu', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ userId, role: formData.role }),
+});
+
 
       const result = await response.json();
 

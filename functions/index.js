@@ -4,8 +4,8 @@ require("dotenv").config();
 
 const roleMenus = {
   resident: 'richmenu-dc6d9ecfe8aeb44ba250f9c18bd8e0c0',
-  juristic: 'richmenu-df8332fe1894db979e3eb5a426e680ae',
-  technician: 'richmenu-df8332fe1894db979e3eb5a426e680ae',
+  juristic: 'richmenu-yyyyy',
+  technician: 'richmenu-zzzzz',
 };
 
 exports.linkRichMenu = functions.https.onRequest(async (req, res) => {
