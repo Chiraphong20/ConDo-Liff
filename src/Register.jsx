@@ -1,6 +1,7 @@
+// src/components/Register.jsx
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../firebase'; // ปรับ path ให้ตรงกับโปรเจกต์
 import liff from '@line/liff';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,6 +17,7 @@ const Register = () => {
 
   const [userId, setUserId] = useState(null);
   const [displayName, setDisplayName] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,14 +31,11 @@ const Register = () => {
         }
 
         const profile = await liff.getProfile();
-        const context = liff.getContext();
         const accessToken = liff.getAccessToken();
-
-        console.log('LIFF Profile:', profile);
-        console.log('LIFF Context:', context);
 
         if (!accessToken) {
           alert('⚠️ กรุณาเปิดลิงก์ผ่านแอป LINE และเพิ่มเพื่อนกับ OA ก่อนใช้งาน');
+          return;
         }
 
         setUserId(profile.userId);
@@ -63,50 +62,46 @@ const Register = () => {
       return;
     }
 
-    if (formData.role === 'technician' && formData.keycode !== '12345') {
-      alert("🚫 รหัสช่างไม่ถูกต้อง");
-      return;
-    }
+    setIsSubmitting(true);
 
     try {
+      // ไม่เช็ค keycode ที่ frontend เพราะจะเช็คที่ backend เพื่อความปลอดภัย
+
       const userData = {
         name: formData.fullname,
         phone: formData.phone,
         room: formData.room,
         building: formData.building,
         role: formData.role,
-        keycode: formData.role === 'technician' ? formData.keycode : '',
         displayName,
       };
 
-      console.log("📤 Sending user data to Firestore:", userData);
-
       await setDoc(doc(db, 'users', userId), userData);
 
-      // 🔗 เรียก API ไปยัง backend server พร้อม log
-      console.log('🔵 Sending to API:', {
-        url: 'https://con-do-liff-wel9.vercel.app/register/api/link-richmenu',
-        body: { userId, role: formData.role }
+      const res = await fetch('/api/register/link-richmenu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          role: formData.role,
+          keycode: formData.keycode,
+          name: formData.fullname,
+          phone: formData.phone,
+          room: formData.room,
+          building: formData.building,
+          displayName,
+        }),
       });
 
- const response = await fetch('https://con-do-liff-wel9.vercel.app/register/api/link-richmenu', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ userId, role: formData.role }),
-});
+      const result = await res.json();
 
-
-      const result = await response.json();
-
-      console.log('🟢 API Response:', result);
-
-      if (!response.ok) {
-        throw new Error(result.message || 'API failed');
+      if (!res.ok) {
+        throw new Error(result.message || 'API request failed');
       }
 
       alert('✅ ลงทะเบียนสำเร็จ');
 
-      // 📨 ส่งข้อความต้อนรับ
+      // ส่งข้อความต้อนรับผ่าน LIFF
       let welcomeMessage = '';
       switch (formData.role) {
         case 'resident':
@@ -129,9 +124,12 @@ const Register = () => {
       }
 
       liff.closeWindow();
+
     } catch (err) {
-      console.error("❌ บันทึกไม่สำเร็จ:", err);
-      alert("เกิดข้อผิดพลาดในการลงทะเบียน: " + err.message);
+      alert('❌ เกิดข้อผิดพลาด: ' + err.message);
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -146,6 +144,7 @@ const Register = () => {
           value={formData.fullname}
           onChange={handleChange}
           required
+          disabled={isSubmitting}
         />
         <input
           type="tel"
@@ -154,6 +153,7 @@ const Register = () => {
           value={formData.phone}
           onChange={handleChange}
           required
+          disabled={isSubmitting}
         />
         <input
           type="text"
@@ -162,6 +162,7 @@ const Register = () => {
           value={formData.room}
           onChange={handleChange}
           required
+          disabled={isSubmitting}
         />
         <input
           type="text"
@@ -170,9 +171,16 @@ const Register = () => {
           value={formData.building}
           onChange={handleChange}
           required
+          disabled={isSubmitting}
         />
 
-        <select name="role" value={formData.role} onChange={handleChange} required>
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          required
+          disabled={isSubmitting}
+        >
           <option value="">เลือกบทบาท</option>
           <option value="resident">ลูกบ้าน</option>
           <option value="juristic">นิติบุคคล</option>
@@ -187,10 +195,13 @@ const Register = () => {
             value={formData.keycode}
             onChange={handleChange}
             required
+            disabled={isSubmitting}
           />
         )}
 
-        <button type="submit">ลงทะเบียน</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ลงทะเบียน'}
+        </button>
       </form>
     </div>
   );
