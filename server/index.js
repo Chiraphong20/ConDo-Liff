@@ -1,43 +1,53 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const axios = require('axios');
+import express from 'express';
+import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.post('/api/link-richmenu', async (req, res) => {
-  const { userId, role } = req.body;
+const CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
-  const richMenuId = {
-    resident: 'richmenu-dc6d9ecfe8aeb44ba250f9c18bd8e0c0',
-    juristic: 'richmenu-df8332fe1894db979e3eb5a426e680ae',
-    technician: 'richmenu-df8332fe1894db979e3eb5a426e680ae',
-  }[role];
+const RICH_MENU_IDS = {
+  resident: process.env.RESIDENT_MENU_ID,
+  juristic: process.env.JURISTIC_MENU_ID,
+  technician: process.env.TECHNICIAN_MENU_ID,
+};
 
-  if (!richMenuId) {
-    return res.status(400).json({ message: 'Invalid role' });
-  }
-
+app.post('/register/api/link-richmenu', async (req, res) => {
   try {
-    await axios.post(
-      `https://api.line.me/v2/bot/user/${userId}/richmenu/${richMenuId}`,
-      {},
-      {
-        headers: {
-          'Authorization': `Bearer qIvNO1l0vxERUs0TwZWrY4AtcpuR9FEGZLkXLvue0ooF1NxYNnnBOSfGNVdLB0i2T4ymCXsr/9mRSGdAjixhoHwjPFwA2eEzz0URvWSsFE8/PwH+9nHNEmjZ//s3CEwUDHhvW6vKwdutJ6w6M3cufAdB04t89/1O/w1cDnyilFU=`
-        }
-      }
-    );
+    const { userId, role } = req.body;
 
-    res.status(200).json({ message: 'Rich menu linked successfully' });
+    if (!userId || !role) {
+      return res.status(400).json({ message: 'Missing userId or role' });
+    }
+
+    const richMenuId = RICH_MENU_IDS[role];
+
+    if (!richMenuId) {
+      return res.status(400).json({ message: 'Invalid role or no richMenuId set' });
+    }
+
+    // เรียก LINE API เพื่อเชื่อมโยง Rich Menu กับ userId
+    const url = `https://api.line.me/v2/bot/user/${userId}/richmenu/${richMenuId}`;
+
+    const response = await axios.post(url, {}, {
+      headers: {
+        'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}`,
+      },
+    });
+
+    console.log('LINE Rich Menu link response:', response.data);
+
+    res.json({ message: 'Rich menu linked successfully' });
   } catch (error) {
     console.error('Error linking rich menu:', error.response?.data || error.message);
-    res.status(500).json({ message: 'Failed to link rich menu' });
+    res.status(500).json({ message: 'Failed to link rich menu', error: error.message });
   }
 });
 
-app.listen(3001, () => {
-  console.log('Backend listening on http://localhost:3001');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
