@@ -94,3 +94,19 @@
     .uploadpic input {
     margin-top: 5px;
         }
+        .preview-section {
+  margin-top: 20px;
+}
+
+.preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.preview-grid img,
+.preview-grid video {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}

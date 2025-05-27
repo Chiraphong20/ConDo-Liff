@@ -9,6 +9,7 @@ function Repair() {
   const [activeTab, setActiveTab] = useState('repair');
   const [userId, setUserId] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [previewURLs, setPreviewURLs] = useState([]);
 
   useEffect(() => {
     const initLiffAndFetchUser = async () => {
@@ -37,67 +38,66 @@ function Repair() {
     initLiffAndFetchUser();
   }, []);
 
- const handleSubmit = async (e, type) => {
-  e.preventDefault();
-  const form = e.target;
-  const title = form.querySelector('select').value;
-  const description = form.querySelector('textarea').value;
-  const fileInputs = form.querySelectorAll('input[type="file"]');
+  const handleSubmit = async (e, type) => {
+    e.preventDefault();
+    const form = e.target;
+    const title = form.querySelector('select').value;
+    const description = form.querySelector('textarea').value;
+    const fileInputs = form.querySelectorAll('input[type="file"]');
 
-  if (!userId || !userProfile) {
-    alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
-    return;
-  }
+    if (!userId || !userProfile) {
+      alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+      return;
+    }
 
-  const userInfo = {
-    name: userProfile.name || '',
-    phone: userProfile.phone || '',
-    email: userProfile.email || '',
-    role: userProfile.role || '',
-    room: userProfile.room || '',
-    building: userProfile.building || '',
-    userId: userId,
-  };
+    const userInfo = {
+      name: userProfile.name || '',
+      phone: userProfile.phone || '',
+      email: userProfile.email || '',
+      role: userProfile.role || '',
+      room: userProfile.room || '',
+      building: userProfile.building || '',
+      userId: userId,
+    };
 
-  const storage = getStorage();
-  const uploadedFiles = [];
+    const storage = getStorage();
+    const uploadedFiles = [];
+    setPreviewURLs([]); // reset preview ก่อน
 
-  // อัปโหลดไฟล์ทั้งหมด
-  for (const input of fileInputs) {
-    if (input.files.length > 0) {
-      for (const file of input.files) {
-        const storageRef = ref(storage, `${type}/${userId}/${Date.now()}-${file.name}`);
-        await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(storageRef);
-        uploadedFiles.push(downloadURL);
+    for (const input of fileInputs) {
+      if (input.files.length > 0) {
+        for (const file of input.files) {
+          const storageRef = ref(storage, `${type}/${userId}/${Date.now()}-${file.name}`);
+          await uploadBytes(storageRef, file);
+          const downloadURL = await getDownloadURL(storageRef);
+          uploadedFiles.push(downloadURL);
+        }
       }
     }
-  }
 
-  try {
-    const repairCollectionRef = collection(db, 'users', userId, type);
-    await addDoc(repairCollectionRef, {
-      title,
-      description,
-      type,
-      userId,
-      userInfo,
-      media: uploadedFiles, // เก็บ URL ที่อัปโหลด
-      createdAt: serverTimestamp(),
-    });
+    try {
+      const collectionRef = collection(db, 'users', userId, type);
+      await addDoc(collectionRef, {
+        title,
+        description,
+        type,
+        userId,
+        userInfo,
+        media: uploadedFiles,
+        createdAt: serverTimestamp(),
+      });
 
-    alert('✅ ส่งข้อมูลสำเร็จ');
-    form.reset();
-  } catch (error) {
-    console.error('❌ เกิดข้อผิดพลาด:', error);
-    alert('ส่งข้อมูลไม่สำเร็จ');
-  }
-};
-
+      alert('✅ ส่งข้อมูลสำเร็จ');
+      form.reset();
+      setPreviewURLs(uploadedFiles); // แสดง preview หลัง submit
+    } catch (error) {
+      console.error('❌ เกิดข้อผิดพลาด:', error);
+      alert('ส่งข้อมูลไม่สำเร็จ');
+    }
+  };
 
   return (
     <div>
-     
       {/* ปุ่มสลับ Tab */}
       <div className="tab-bar">
         <div className={`tab ${activeTab === 'repair' ? 'active' : ''}`} onClick={() => setActiveTab('repair')}>
@@ -128,7 +128,7 @@ function Repair() {
 
             <div className="uploadpic">
               <label>อัพโหลดวิดีโอ / รูปภาพ</label>
-            <input type="file" accept="image/*,video/*" multiple />
+              <input type="file" accept="image/*,video/*" multiple />
               <label>หรือ</label>
               <label>ถ่ายรูป / วิดีโอ</label>
               <input type="file" accept="image/*,video/*" capture="environment" />
@@ -136,6 +136,21 @@ function Repair() {
 
             <button type="submit">ส่งแจ้งซ่อม</button>
           </form>
+
+          {previewURLs.length > 0 && (
+            <div className="preview-section">
+              <h3>ไฟล์ที่อัปโหลดแล้ว:</h3>
+              <div className="preview-grid">
+                {previewURLs.map((url, idx) => (
+                  url.match(/\.(jpeg|jpg|png|gif|webp)$/i) ? (
+                    <img key={idx} src={url} alt={`uploaded-${idx}`} width="200" />
+                  ) : (
+                    <video key={idx} src={url} controls width="200" />
+                  )
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -167,6 +182,21 @@ function Repair() {
 
             <button type="submit">ส่งเรื่องร้องเรียน</button>
           </form>
+
+          {previewURLs.length > 0 && (
+            <div className="preview-section">
+              <h3>ไฟล์ที่อัปโหลดแล้ว:</h3>
+              <div className="preview-grid">
+                {previewURLs.map((url, idx) => (
+                  url.match(/\.(jpeg|jpg|png|gif|webp)$/i) ? (
+                    <img key={idx} src={url} alt={`uploaded-${idx}`} width="200" />
+                  ) : (
+                    <video key={idx} src={url} controls width="200" />
+                  )
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
