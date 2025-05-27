@@ -1,50 +1,43 @@
-import React, { useState } from 'react';
-import { Input, Button, Modal, Form, Select, Upload, Avatar } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Input, Button, Modal, Avatar } from 'antd';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from './firebase'; // import firebase config ของคุณ
+import liff from '@line/liff';
 import './CSS/CondoReport.css';
-
-const { Option } = Select;
 
 const CondoReport = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalType, setModalType] = useState('');
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [rooms, setRooms] = useState([
-    {
-      room: '112',
-      name: 'นาย สุดหล่อ คนดี',
-      phone: '0938134123',
-      complaintTopic: 'ข้างห้องเสียงดัง',
-      detail: 'ddddddddddddddddddddddddd ddddddddddd',
-      media: [
-        'https://cdn.pixabay.com/photo/2016/08/08/09/17/people-1572058_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2017/01/20/00/30/building-1991894_960_720.jpg'
-      ],
-      officers: [
-        { name: 'นายสมพง กกกก', phone: '0921312541' },
-        { name: 'นายสมพง กกกก', phone: '0921312541' }
-      ]
-    },
-     {
-      room: '113',
-      name: 'นาย สุดหล่อ คนดี',
-      phone: '0938134123',
-      complaintTopic: 'ข้างห้องเสียงดัง',
-      detail: 'ddddddddddddddddddddddddd ddddddddddd',
-      media: [
-        'https://cdn.pixabay.com/photo/2016/08/08/09/17/people-1572058_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2017/01/20/00/30/building-1991894_960_720.jpg'
-      ],
-      officers: [
-        { name: 'นายสมพง กกกก', phone: '0921312541' },
-        { name: 'นายสมพง กกกก', phone: '0921312541' }
-      ]
-    }
-    
-  ]);
+  const [repairs, setRepairs] = useState([]);
+  const [userId, setUserId] = useState(null);
 
-  const handleCardClick = (room) => {
-    setSelectedRoom(room);
-    setModalType('view');
+  useEffect(() => {
+    const initLiffAndLoadRepairs = async () => {
+      try {
+        await liff.init({ liffId: '2007355122-xBNrkXmM' });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        const profile = await liff.getProfile();
+        setUserId(profile.userId);
+
+        // ดึงข้อมูลแจ้งซ่อม จาก Firestore subcollection users/{userId}/repair
+        const repairColRef = collection(db, 'users', profile.userId, 'repair');
+        const repairSnapshot = await getDocs(repairColRef);
+        const repairList = repairSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        setRepairs(repairList);
+      } catch (error) {
+        console.error('โหลดข้อมูลแจ้งซ่อมไม่สำเร็จ:', error);
+      }
+    };
+
+    initLiffAndLoadRepairs();
+  }, []);
+
+  const handleCardClick = (repair) => {
+    setSelectedRoom(repair);
     setModalVisible(true);
   };
 
@@ -71,24 +64,28 @@ const CondoReport = () => {
         </div>
       </div>
 
-      {/* แสดงรายการร้องเรียน */}
+      {/* แสดงรายการแจ้งซ่อม */}
       <div className="room-section">
-        {rooms.map((room, index) => (
-          <div key={index} className="room-card" onClick={() => handleCardClick(room)}>
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
-              alt="building"
-              style={{ width: 60, margin: '10px 0' }}
-            />
-            <div><b>{room.name}</b></div>
-            <div><b>เบอร์ : {room.phone}</b></div>
-            <div><b>ห้อง {room.room}</b></div>
-            <div><b>{room.complaintTopic}</b></div>
-          </div>
-        ))}
+        {repairs.length === 0 ? (
+          <p>ไม่มีข้อมูลแจ้งซ่อม</p>
+        ) : (
+          repairs.map((repair, index) => (
+            <div key={index} className="room-card" onClick={() => handleCardClick(repair)}>
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
+                alt="building"
+                style={{ width: 60, margin: '10px 0' }}
+              />
+              <div><b>{repair.userInfo?.name || '-'}</b></div>
+              <div><b>เบอร์ : {repair.userInfo?.phone || '-'}</b></div>
+              <div><b>ห้อง {repair.userInfo?.room || '-'}</b></div>
+              <div><b>{repair.title || '-'}</b></div>
+            </div>
+          ))
+        )}
       </div>
 
-      {/* Modal รายละเอียด */}
+      {/* Modal รายละเอียดแจ้งซ่อม */}
       <Modal
         title="รับเรื่องร้องขอ"
         open={modalVisible}
@@ -98,33 +95,43 @@ const CondoReport = () => {
       >
         {selectedRoom && (
           <div>
-            <p><b>หมวดหมู่:</b> แจ้งร้องเรียน</p>
-            <p><b>หัวข้อ:</b> {selectedRoom.complaintTopic}</p>
+            <p><b>หมวดหมู่:</b> {selectedRoom.type || 'แจ้งซ่อม'}</p>
+            <p><b>หัวข้อ:</b> {selectedRoom.title}</p>
             <p><b>ข้อมูลเพิ่มเติม:</b></p>
-            <p>{selectedRoom.detail}</p>
+            <p>{selectedRoom.description}</p>
 
-            <p><b>มีเดีย:</b></p>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-              {selectedRoom.media.map((url, idx) => (
-                <img key={idx} src={url} alt={`media-${idx}`} width={100} height={100} style={{ borderRadius: 8 }} />
-              ))}
-            </div>
-
-            <p style={{ marginTop: 16 }}><b>มอบหมายเจ้าหน้าที่:</b></p>
-            <div style={{ display: 'flex', gap: '20px' }}>
-              {selectedRoom.officers.map((officer, i) => (
-                <div key={i} style={{ textAlign: 'center' }}>
-                  <Avatar size={48} />
-                  <p style={{ margin: 4 }}>{officer.name}</p>
-                  <p style={{ fontSize: 12 }}>{officer.phone}</p>
+            {/* สมมติถ้ามี media เป็น array URL */}
+            {selectedRoom.media && selectedRoom.media.length > 0 && (
+              <>
+                <p><b>มีเดีย:</b></p>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {selectedRoom.media.map((url, idx) => (
+                    <img key={idx} src={url} alt={`media-${idx}`} width={100} height={100} style={{ borderRadius: 8 }} />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
 
-             <div className="modal-buttons">
-                <Button onClick={() => setModalVisible(false)} className="cancel">ยกเลิก</Button>
-                <Button htmlType="submit" type="primary" className="save">บันทึก</Button>
-              </div>
+            {/* แสดงเจ้าหน้าที่ ถ้ามี */}
+            {selectedRoom.officers && selectedRoom.officers.length > 0 && (
+              <>
+                <p style={{ marginTop: 16 }}><b>มอบหมายเจ้าหน้าที่:</b></p>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  {selectedRoom.officers.map((officer, i) => (
+                    <div key={i} style={{ textAlign: 'center' }}>
+                      <Avatar size={48} />
+                      <p style={{ margin: 4 }}>{officer.name}</p>
+                      <p style={{ fontSize: 12 }}>{officer.phone}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <div className="modal-buttons">
+              <Button onClick={() => setModalVisible(false)} className="cancel">ยกเลิก</Button>
+              <Button type="primary" className="save">บันทึก</Button>
+            </div>
           </div>
         )}
       </Modal>
