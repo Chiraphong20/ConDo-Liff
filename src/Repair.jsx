@@ -58,7 +58,11 @@ function Repair() {
     };
 
     try {
-      await addDoc(collection(db, type === 'repair' ? 'repairs' : 'complaints'), {
+      // เปลี่ยนจาก collection ตรง เป็น subcollection ภายใน users/{userId}
+      const subcollectionName = type; // 'repair' หรือ 'complaint'
+      const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
+
+      await addDoc(repairCollectionRef, {
         title,
         description,
         type,
