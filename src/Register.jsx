@@ -1,4 +1,3 @@
-// src/components/Register.jsx
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from './firebase'; 
@@ -65,8 +64,6 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
-      // ไม่เช็ค keycode ที่ frontend เพราะจะเช็คที่ backend เพื่อความปลอดภัย
-
       const userData = {
         name: formData.fullname,
         phone: formData.phone,
@@ -78,30 +75,8 @@ const Register = () => {
 
       await setDoc(doc(db, 'users', userId), userData);
 
-      const res = await fetch('/api/register/link-richmenu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          role: formData.role,
-          keycode: formData.keycode,
-          name: formData.fullname,
-          phone: formData.phone,
-          room: formData.room,
-          building: formData.building,
-          displayName,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        throw new Error(result.message || 'API request failed');
-      }
-
       alert('✅ ลงทะเบียนสำเร็จ');
 
-      // ส่งข้อความต้อนรับผ่าน LIFF
       let welcomeMessage = '';
       switch (formData.role) {
         case 'resident':

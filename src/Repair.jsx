@@ -21,7 +21,6 @@ function Repair() {
         const profile = await liff.getProfile();
         setUserId(profile.userId);
 
-        // ดึงข้อมูลผู้ใช้จาก Firestore
         const userDocRef = doc(db, 'users', profile.userId);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
@@ -48,20 +47,23 @@ function Repair() {
       return;
     }
 
+    const userInfo = {
+      name: userProfile.name || '',
+      phone: userProfile.phone || '',
+      email: userProfile.email || '',
+      role: userProfile.role || '',
+      room: userProfile.room || '',
+      building: userProfile.building || '',
+      userId: userId,
+    };
+
     try {
       await addDoc(collection(db, type === 'repair' ? 'repairs' : 'complaints'), {
         title,
         description,
         type,
         userId,
-        userInfo: {
-          name: userProfile.name,
-          phone: userProfile.phone,
-          email: userProfile.email,
-          role: userProfile.role,
-          room: userProfile.room,
-          building: userProfile.building,
-        },
+        userInfo,
         createdAt: serverTimestamp(),
       });
 
@@ -75,6 +77,20 @@ function Repair() {
 
   return (
     <div>
+      {/* ข้อมูลผู้ใช้งาน */}
+      {userProfile && (
+        <div className="user-info">
+          <h3>ข้อมูลผู้ใช้งาน</h3>
+          <p><strong>ชื่อ:</strong> {userProfile.name || 'ไม่ระบุ'}</p>
+          <p><strong>เบอร์โทร:</strong> {userProfile.phone || 'ไม่ระบุ'}</p>
+          <p><strong>อีเมล:</strong> {userProfile.email || 'ไม่ระบุ'}</p>
+          <p><strong>ห้อง:</strong> {userProfile.room || 'ไม่ระบุ'}</p>
+          <p><strong>อาคาร:</strong> {userProfile.building || 'ไม่ระบุ'}</p>
+          <p><strong>สิทธิ์:</strong> {userProfile.role || 'ไม่ระบุ'}</p>
+          <p><strong>LINE UserID:</strong> {userId}</p>
+        </div>
+      )}
+
       {/* ปุ่มสลับ Tab */}
       <div className="tab-bar">
         <div className={`tab ${activeTab === 'repair' ? 'active' : ''}`} onClick={() => setActiveTab('repair')}>
@@ -85,7 +101,7 @@ function Repair() {
         </div>
       </div>
 
-      {/* Form: แจ้งซ่อม */}
+      {/* ฟอร์มแจ้งซ่อม */}
       {activeTab === 'repair' && (
         <div className="container tab-content active">
           <h2>แจ้งซ่อม</h2>
@@ -116,7 +132,7 @@ function Repair() {
         </div>
       )}
 
-      {/* Form: ร้องเรียน */}
+      {/* ฟอร์มร้องเรียน */}
       {activeTab === 'complaint' && (
         <div className="container tab-content active">
           <h2>ร้องเรียน</h2>
