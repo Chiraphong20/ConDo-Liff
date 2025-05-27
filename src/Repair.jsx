@@ -37,47 +37,63 @@ function Repair() {
   }, []);
 
   const handleSubmit = async (e, type) => {
-    e.preventDefault();
-    const form = e.target;
-    const title = form.querySelector('select').value;
-    const description = form.querySelector('textarea').value;
+  e.preventDefault();
+  const form = e.target;
+  const title = form.querySelector('select').value;
+  const description = form.querySelector('textarea').value;
 
-    if (!userId || !userProfile) {
-      alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
-      return;
-    }
+  if (!userId || !userProfile) {
+    alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+    return;
+  }
 
-    const userInfo = {
-      name: userProfile.name || '',
-      phone: userProfile.phone || '',
-      email: userProfile.email || '',
-      role: userProfile.role || '',
-      room: userProfile.room || '',
-      building: userProfile.building || '',
-      userId: userId,
-    };
+  const fileInput = form.querySelector('input[type="file"]');
+  const file = fileInput?.files[0];
 
-    try {
-      // เปลี่ยนจาก collection ตรง เป็น subcollection ภายใน users/{userId}
-      const subcollectionName = type; // 'repair' หรือ 'complaint'
-      const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
+  let base64Data = null;
+  if (file) {
+    base64Data = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
 
-      await addDoc(repairCollectionRef, {
-        title,
-        description,
-        type,
-        userId,
-        userInfo,
-        createdAt: serverTimestamp(),
-      });
-
-      alert('✅ ส่งข้อมูลสำเร็จ');
-      form.reset();
-    } catch (error) {
-      console.error('❌ เกิดข้อผิดพลาด:', error);
-      alert('ส่งข้อมูลไม่สำเร็จ');
-    }
+  const userInfo = {
+    name: userProfile.name || '',
+    phone: userProfile.phone || '',
+    email: userProfile.email || '',
+    role: userProfile.role || '',
+    room: userProfile.room || '',
+    building: userProfile.building || '',
+    userId: userId,
   };
+
+  try {
+    const subcollectionName = type; // 'repair' หรือ 'complaint'
+    const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
+
+    await addDoc(repairCollectionRef, {
+      title,
+      description,
+      type,
+      userId,
+      userInfo,
+      createdAt: serverTimestamp(),
+      media: base64Data || null, // บันทึก base64 ถ้ามี
+      mediaType: file?.type || null,
+      mediaName: file?.name || null,
+    });
+
+    alert('✅ ส่งข้อมูลสำเร็จ');
+    form.reset();
+  } catch (error) {
+    console.error('❌ เกิดข้อผิดพลาด:', error);
+    alert('ส่งข้อมูลไม่สำเร็จ');
+  }
+};
+
 
   return (
     <div>
