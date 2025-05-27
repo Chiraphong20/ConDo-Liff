@@ -3,6 +3,7 @@ import './CSS/Repair.css';
 import { db } from './firebase';
 import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import liff from '@line/liff';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 function Repair() {
   const [activeTab, setActiveTab] = useState('repair');
@@ -36,48 +37,63 @@ function Repair() {
     initLiffAndFetchUser();
   }, []);
 
-  const handleSubmit = async (e, type) => {
-    e.preventDefault();
-    const form = e.target;
-    const title = form.querySelector('select').value;
-    const description = form.querySelector('textarea').value;
+ const handleSubmit = async (e, type) => {
+  e.preventDefault();
+  const form = e.target;
+  const title = form.querySelector('select').value;
+  const description = form.querySelector('textarea').value;
+  const fileInputs = form.querySelectorAll('input[type="file"]');
 
-    if (!userId || !userProfile) {
-      alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
-      return;
-    }
+  if (!userId || !userProfile) {
+    alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+    return;
+  }
 
-    const userInfo = {
-      name: userProfile.name || '',
-      phone: userProfile.phone || '',
-      email: userProfile.email || '',
-      role: userProfile.role || '',
-      room: userProfile.room || '',
-      building: userProfile.building || '',
-      userId: userId,
-    };
-
-    try {
-      // เปลี่ยนจาก collection ตรง เป็น subcollection ภายใน users/{userId}
-      const subcollectionName = type; // 'repair' หรือ 'complaint'
-      const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
-
-      await addDoc(repairCollectionRef, {
-        title,
-        description,
-        type,
-        userId,
-        userInfo,
-        createdAt: serverTimestamp(),
-      });
-
-      alert('✅ ส่งข้อมูลสำเร็จ');
-      form.reset();
-    } catch (error) {
-      console.error('❌ เกิดข้อผิดพลาด:', error);
-      alert('ส่งข้อมูลไม่สำเร็จ');
-    }
+  const userInfo = {
+    name: userProfile.name || '',
+    phone: userProfile.phone || '',
+    email: userProfile.email || '',
+    role: userProfile.role || '',
+    room: userProfile.room || '',
+    building: userProfile.building || '',
+    userId: userId,
   };
+
+  const storage = getStorage();
+  const uploadedFiles = [];
+
+  // อัปโหลดไฟล์ทั้งหมด
+  for (const input of fileInputs) {
+    if (input.files.length > 0) {
+      for (const file of input.files) {
+        const storageRef = ref(storage, `${type}/${userId}/${Date.now()}-${file.name}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+        uploadedFiles.push(downloadURL);
+      }
+    }
+  }
+
+  try {
+    const repairCollectionRef = collection(db, 'users', userId, type);
+    await addDoc(repairCollectionRef, {
+      title,
+      description,
+      type,
+      userId,
+      userInfo,
+      media: uploadedFiles, // เก็บ URL ที่อัปโหลด
+      createdAt: serverTimestamp(),
+    });
+
+    alert('✅ ส่งข้อมูลสำเร็จ');
+    form.reset();
+  } catch (error) {
+    console.error('❌ เกิดข้อผิดพลาด:', error);
+    alert('ส่งข้อมูลไม่สำเร็จ');
+  }
+};
+
 
   return (
     <div>
@@ -112,7 +128,7 @@ function Repair() {
 
             <div className="uploadpic">
               <label>อัพโหลดวิดีโอ / รูปภาพ</label>
-              <input type="file" accept="image/*,video/*" />
+            <input type="file" accept="image/*,video/*" multiple />
               <label>หรือ</label>
               <label>ถ่ายรูป / วิดีโอ</label>
               <input type="file" accept="image/*,video/*" capture="environment" />
