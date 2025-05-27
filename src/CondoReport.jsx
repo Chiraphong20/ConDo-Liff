@@ -101,24 +101,28 @@ const CondoReport = () => {
             <p>{selectedRoom.description}</p>
 
             {/* สมมติถ้ามี media เป็น array URL */}
-           {selectedRoom.media && selectedRoom.media.length > 0 && (
+        {selectedRoom.media && (
   <>
     <p><b>มีเดีย:</b></p>
     <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-      {selectedRoom.media.map((url, idx) => {
-        const isVideo = url.match(/\.(mp4|webm|ogg)$/i);
-        return isVideo ? (
-          <video key={idx} width="150" height="100" controls style={{ borderRadius: 8 }}>
-            <source src={url} type="video/mp4" />
-            เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
-          </video>
-        ) : (
-          <img key={idx} src={url} alt={`media-${idx}`} width={100} height={100} style={{ borderRadius: 8 }} />
-        );
-      })}
+      {selectedRoom.mediaType?.startsWith('video') ? (
+        <video width="300" height="200" controls style={{ borderRadius: 8 }}>
+          <source src={selectedRoom.media} type={selectedRoom.mediaType} />
+          เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
+        </video>
+      ) : (
+        <img
+          src={selectedRoom.media}
+          alt="media"
+          width={200}
+          height={200}
+          style={{ borderRadius: 8, objectFit: 'cover' }}
+        />
+      )}
     </div>
   </>
 )}
+
 
             {/* แสดงเจ้าหน้าที่ ถ้ามี */}
             {selectedRoom.officers && selectedRoom.officers.length > 0 && (
