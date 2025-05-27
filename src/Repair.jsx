@@ -36,36 +36,48 @@ function Repair() {
     initLiffAndFetchUser();
   }, []);
 
-const handleSubmit = async (e, type) => {
-  e.preventDefault();
-  const form = e.target;
-  const title = form.querySelector('select').value;
-  const description = form.querySelector('textarea').value;
+  const handleSubmit = async (e, type) => {
+    e.preventDefault();
+    const form = e.target;
+    const title = form.querySelector('select').value;
+    const description = form.querySelector('textarea').value;
 
-  if (!userId) {
-    alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
-    return;
-  }
+    if (!userId || !userProfile) {
+      alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+      return;
+    }
 
-  try {
-    const subcollectionName = type; // 'repair' หรือ 'complaint'
-    const collectionRef = collection(db, 'users', userId, subcollectionName);
+    const userInfo = {
+      name: userProfile.name || '',
+      phone: userProfile.phone || '',
+      email: userProfile.email || '',
+      role: userProfile.role || '',
+      room: userProfile.room || '',
+      building: userProfile.building || '',
+      userId: userId,
+    };
 
-    await addDoc(collectionRef, {
-      title,
-      description,
-      type,
-      userId,         // เก็บแค่ userId เพื่อระบุคนบันทึก
-      createdAt: serverTimestamp(),
-    });
+    try {
+      // เปลี่ยนจาก collection ตรง เป็น subcollection ภายใน users/{userId}
+      const subcollectionName = type; // 'repair' หรือ 'complaint'
+      const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
 
-    alert('✅ ส่งข้อมูลสำเร็จ');
-    form.reset();
-  } catch (error) {
-    console.error('❌ เกิดข้อผิดพลาด:', error);
-    alert('ส่งข้อมูลไม่สำเร็จ');
-  }
-};
+      await addDoc(repairCollectionRef, {
+        title,
+        description,
+        type,
+        userId,
+        userInfo,
+        createdAt: serverTimestamp(),
+      });
+
+      alert('✅ ส่งข้อมูลสำเร็จ');
+      form.reset();
+    } catch (error) {
+      console.error('❌ เกิดข้อผิดพลาด:', error);
+      alert('ส่งข้อมูลไม่สำเร็จ');
+    }
+  };
 
   return (
     <div>
