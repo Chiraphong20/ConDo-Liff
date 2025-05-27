@@ -11,6 +11,9 @@ import Dashboard from './Dashboard';
 import Machanic from './machanic';
 import Machanicstatus from './machanicstatus';
 import MachanicCase from './machaniccase';
+import MenuPage from './Menupage';
+import FinancePage from "./FinancePage";
+
 function App() {
   return (
     <Router>
@@ -27,12 +30,8 @@ function App() {
         <Route path="/machaniccase" element={<MachanicCase />} />
         <Route path="/machanicstatus" element={<Machanicstatus />} />
         <Route path="/machanic" element={<Machanic />} />
-
-
-
-
-
-
+        <Route path="/menupage" element={<MenuPage />} />
+        <Route path="/finance" element={<FinancePage />} />
       </Routes>
     </Router>
   );
