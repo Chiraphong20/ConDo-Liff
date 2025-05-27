@@ -11,7 +11,7 @@ function Home() {
         <Link to="/my-bills" className="button">ค้างชำระ</Link>
         <Link to="/register" className="button">ลงทะเบียน</Link>
         <Link to="/status" className="button">ติดตามสถานะ</Link>
-        <Link to="/Menupage" className="button">อื่นๆ</Link>
+        <Link to="/menupage" className="button">อื่นๆ</Link>
         <Link to="/dashboard" className="button">นิติห้อง</Link>
         <Link to="/machanicstatus" className="button">ติดตามสถานะช่าง</Link>
         <Link to="/machaniccase" className="button">เคสซ่อมแซม</Link>

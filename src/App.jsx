@@ -10,8 +10,8 @@ import Dashboard from './Dashboard';
 import Machanic from './machanic';
 import Machanicstatus from './machanicstatus';
 import MachanicCase from './machaniccase';
-import MenuPage from './Menupage';
-import Meet from './Meet'; // ✅ อย่าลืมนำเข้า
+import MenuPage from './MenuPage';
+import Meet from './Meet'; 
 import FinancePage from './FinancePage';
 
 function App() {
@@ -30,8 +30,7 @@ function App() {
         <Route path="/machanicstatus" element={<Machanicstatus />} />
         <Route path="/machanic" element={<Machanic />} />
 
-        {/* ✅ Parent route + nested children */}
-        <Route path="/Menupage" element={<MenuPage />}>
+        <Route path="/MenuPage" element={<MenuPage />}>
           <Route path="meet" element={<Meet />} />
           <Route path="finance" element={<FinancePage />} />
         </Route>
