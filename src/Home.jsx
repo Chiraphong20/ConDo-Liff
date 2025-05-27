@@ -7,17 +7,20 @@ function Home() {
       <h2>เมนูหลัก</h2>
       <div className="menu">
         <Link to="/profile" className="button">ไปที่โปรไฟล์</Link>
-        <a href="/repair" className="button">แจ้งซ่อม</a>
-        <a href="/my-bills" className="button">ค้างชำระ</a>
-        <a href="/register" className="button">ลงทะเบียน</a>
-        <a href="/meet" className="button">จองห้องประชุม</a>
-        <a href="/status" className="button">ติดตามสถานะ</a>
-        <a href="/manupage" className="button">อื่นๆ</a>
-        <a href="/dashboard" className="button">นิติห้อง</a>
-        <a href="CondoPayment.html" className="button">คนค้างชำระ</a>
-        <a href="/machanicstatus" className="button">ติดตามสถานะช่าง</a>
-        <a href="/machaniccase" className="button">เคสซ่อมแซม</a>
-        <a href="/machanic" className="button">รายละเอียดคำสั่งซ่อม</a>
+        <Link to="/repair" className="button">แจ้งซ่อม</Link>
+        <Link to="/my-bills" className="button">ค้างชำระ</Link>
+        <Link to="/register" className="button">ลงทะเบียน</Link>
+        <Link to="/status" className="button">ติดตามสถานะ</Link>
+        <Link to="/Menupage" className="button">อื่นๆ</Link>
+        <Link to="/dashboard" className="button">นิติห้อง</Link>
+        <Link to="/machanicstatus" className="button">ติดตามสถานะช่าง</Link>
+        <Link to="/machaniccase" className="button">เคสซ่อมแซม</Link>
+        <Link to="/machanic" className="button">รายละเอียดคำสั่งซ่อม</Link>
+
+        {/* หาก CondoPayment.html เป็นไฟล์ HTML จริงนอก React ใช้ <a> ได้ */}
+        <a href="CondoPayment.html" className="button" target="_blank" rel="noopener noreferrer">
+          คนค้างชำระ
+        </a>
       </div>
     </div>
   );

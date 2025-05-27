@@ -1,27 +1,22 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import "./CSS/MenuPage.css";
 
 const MenuPage = () => {
-  const navigate = useNavigate();
-
-  const goToBooking = () => {
-    navigate("/meeting");
-  };
-
-  const goToFinance = () => {
-    navigate("/finance");
-  };
-
   return (
-    <div className="menu-container">
-      <div className="menu">
-        <div className="menu-button" onClick={goToBooking}>
-          จองห้องประชุม
+    <div className="menu-layout">
+      <div className="menu-sidebar">
+        <div className="menu-card">
+          {/* ✅ ใช้ absolute path เพื่อหลีกเลี่ยง path ผิด */}
+          <Link to="/Menupage/meet">จองห้องประชุม</Link>
         </div>
-        <div className="menu-button" onClick={goToFinance}>
-          เบิกจ่ายเงิน-รายจ่าย<br />สำนักงานกลาง
+        <div className="menu-card">
+          <Link to="/Menupage/finance">เบิกจ่ายค่าส่วนกลาง</Link>
         </div>
+      </div>
+      <div className="menu-content">
+        {/* ✅ ใช้ Outlet ให้ React Router แสดงหน้าที่ตรงกับ Route */}
+        <Outlet />
       </div>
     </div>
   );
