@@ -36,65 +36,40 @@ function Repair() {
     initLiffAndFetchUser();
   }, []);
 
-  const handleSubmit = async (e, type) => {
-    e.preventDefault();
-    const form = e.target;
-    const title = form.querySelector('select').value;
-    const description = form.querySelector('textarea').value;
+const handleSubmit = async (e, type) => {
+  e.preventDefault();
+  const form = e.target;
+  const title = form.querySelector('select').value;
+  const description = form.querySelector('textarea').value;
 
-    if (!userId || !userProfile) {
-      alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
-      return;
-    }
+  if (!userId) {
+    alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+    return;
+  }
 
-    const userInfo = {
-      name: userProfile.name || '',
-      phone: userProfile.phone || '',
-      email: userProfile.email || '',
-      role: userProfile.role || '',
-      room: userProfile.room || '',
-      building: userProfile.building || '',
-      userId: userId,
-    };
+  try {
+    const subcollectionName = type; // 'repair' หรือ 'complaint'
+    const collectionRef = collection(db, 'users', userId, subcollectionName);
 
-    try {
-      // เปลี่ยนจาก collection ตรง เป็น subcollection ภายใน users/{userId}
-      const subcollectionName = type; // 'repair' หรือ 'complaint'
-      const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
+    await addDoc(collectionRef, {
+      title,
+      description,
+      type,
+      userId,         // เก็บแค่ userId เพื่อระบุคนบันทึก
+      createdAt: serverTimestamp(),
+    });
 
-      await addDoc(repairCollectionRef, {
-        title,
-        description,
-        type,
-        userId,
-        userInfo,
-        createdAt: serverTimestamp(),
-      });
-
-      alert('✅ ส่งข้อมูลสำเร็จ');
-      form.reset();
-    } catch (error) {
-      console.error('❌ เกิดข้อผิดพลาด:', error);
-      alert('ส่งข้อมูลไม่สำเร็จ');
-    }
-  };
+    alert('✅ ส่งข้อมูลสำเร็จ');
+    form.reset();
+  } catch (error) {
+    console.error('❌ เกิดข้อผิดพลาด:', error);
+    alert('ส่งข้อมูลไม่สำเร็จ');
+  }
+};
 
   return (
     <div>
-      {/* ข้อมูลผู้ใช้งาน */}
-      {userProfile && (
-        <div className="user-info">
-          <h3>ข้อมูลผู้ใช้งาน</h3>
-          <p><strong>ชื่อ:</strong> {userProfile.name || 'ไม่ระบุ'}</p>
-          <p><strong>เบอร์โทร:</strong> {userProfile.phone || 'ไม่ระบุ'}</p>
-          <p><strong>อีเมล:</strong> {userProfile.email || 'ไม่ระบุ'}</p>
-          <p><strong>ห้อง:</strong> {userProfile.room || 'ไม่ระบุ'}</p>
-          <p><strong>อาคาร:</strong> {userProfile.building || 'ไม่ระบุ'}</p>
-          <p><strong>สิทธิ์:</strong> {userProfile.role || 'ไม่ระบุ'}</p>
-          <p><strong>LINE UserID:</strong> {userId}</p>
-        </div>
-      )}
-
+     
       {/* ปุ่มสลับ Tab */}
       <div className="tab-bar">
         <div className={`tab ${activeTab === 'repair' ? 'active' : ''}`} onClick={() => setActiveTab('repair')}>
