@@ -98,7 +98,6 @@ const Register = () => {
         console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
       }
 
-      liff.closeWindow();
 
     } catch (err) {
       alert('❌ เกิดข้อผิดพลาด: ' + err.message);
