@@ -17,7 +17,7 @@ const Register = () => {
   const [role, setRole] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
+ /* useEffect(() => {
     const initLiff = async () => {
       try {
         await liff.init({ liffId: '2007355122-xBNrkXmM', withLoginOnExternalBrowser: true });
@@ -44,7 +44,7 @@ const Register = () => {
     };
 
     initLiff();
-  }, []);
+  }, []);*/
 
   const onFinish = async (values) => {
     if (!userId) {
