@@ -7,7 +7,6 @@ body {
     .container {
       width: 400px;
       margin: auto;
-      background-image: url('/images/2.png');
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       overflow: hidden;

@@ -1,22 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Form, Input, Select, Button, message, Typography } from 'antd';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from './firebase'; 
+import { db } from './firebase';
 import liff from '@line/liff';
 import { useNavigate } from 'react-router-dom';
+import { Row, Col } from 'antd';
+import "./CSS/Register.css";
+const { Title } = Typography;
+const { Option } = Select;
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    fullname: '',
-    phone: '',
-    room: '',
-    building: '',
-    role: '',
-    keycode: '',
-  });
-
+  const [form] = Form.useForm();
   const [userId, setUserId] = useState(null);
   const [displayName, setDisplayName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [role, setRole] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,7 +31,7 @@ const Register = () => {
         const accessToken = liff.getAccessToken();
 
         if (!accessToken) {
-          alert('⚠️ กรุณาเปิดลิงก์ผ่านแอป LINE และเพิ่มเพื่อนกับ OA ก่อนใช้งาน');
+          message.error('⚠️ กรุณาเปิดลิงก์ผ่านแอป LINE และเพิ่มเพื่อนกับ OA ก่อนใช้งาน');
           return;
         }
 
@@ -41,23 +39,16 @@ const Register = () => {
         setDisplayName(profile.displayName);
       } catch (err) {
         console.error('LIFF init error:', err);
-        alert('ไม่สามารถเชื่อมต่อกับ LINE ได้\n' + err.message);
+        message.error('ไม่สามารถเชื่อมต่อกับ LINE ได้\n' + err.message);
       }
     };
 
     initLiff();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const onFinish = async (values) => {
     if (!userId) {
-      alert("⚠️ ไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE");
+      message.warning("⚠️ ไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE");
       return;
     }
 
@@ -65,32 +56,22 @@ const Register = () => {
 
     try {
       const userData = {
-        name: formData.fullname,
-        phone: formData.phone,
-        room: formData.room,
-        building: formData.building,
-        role: formData.role,
+        name: values.fullname,
+        phone: values.phone,
+        email: values.email,
+        room: values.room,
+        building: values.building,
+        role: values.role,
         displayName,
       };
 
       await setDoc(doc(db, 'users', userId), userData);
+      message.success('✅ ลงทะเบียนสำเร็จ');
 
-      alert('✅ ลงทะเบียนสำเร็จ');
-
-      let welcomeMessage = '';
-      switch (formData.role) {
-        case 'resident':
-          welcomeMessage = 'ยินดีต้อนรับลูกบ้าน';
-          break;
-        case 'juristic':
-          welcomeMessage = 'สวัสดีนิติบุคคล';
-          break;
-        case 'technician':
-          welcomeMessage = 'เข้าสู่ระบบช่าง';
-          break;
-        default:
-          welcomeMessage = 'ลงทะเบียนเรียบร้อย';
-      }
+      let welcomeMessage = 'ลงทะเบียนเรียบร้อย';
+      if (values.role === 'resident') welcomeMessage = 'ยินดีต้อนรับลูกบ้าน';
+      else if (values.role === 'juristic') welcomeMessage = 'สวัสดีนิติบุคคล';
+      else if (values.role === 'technician') welcomeMessage = 'เข้าสู่ระบบช่าง';
 
       try {
         await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
@@ -98,9 +79,10 @@ const Register = () => {
         console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
       }
 
+      // คุณสามารถ redirect ได้ที่นี่ เช่น navigate('/home');
 
     } catch (err) {
-      alert('❌ เกิดข้อผิดพลาด: ' + err.message);
+      message.error('❌ เกิดข้อผิดพลาด: ' + err.message);
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -109,74 +91,89 @@ const Register = () => {
 
   return (
     <div className="container">
-      <h2>ลงทะเบียนผู้ใช้</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
+      <Title level={3} style={{ textAlign: 'center' ,color:'#FFF'}}>ลงทะเบียน</Title>
+    <Form
+  form={form}
+  layout="vertical"
+  onFinish={onFinish}
+  className="custom-rounded-input"
+  disabled={isSubmitting}
+>
+        <Form.Item
           name="fullname"
-          placeholder="ชื่อ-นามสกุล"
-          value={formData.fullname}
-          onChange={handleChange}
-          required
-          disabled={isSubmitting}
-        />
-        <input
-          type="tel"
-          name="phone"
-          placeholder="เบอร์โทร"
-          value={formData.phone}
-          onChange={handleChange}
-          required
-          disabled={isSubmitting}
-        />
-        <input
-          type="text"
-          name="room"
-          placeholder="ห้อง"
-          value={formData.room}
-          onChange={handleChange}
-          required
-          disabled={isSubmitting}
-        />
-        <input
-          type="text"
-          name="building"
-          placeholder="ตึก"
-          value={formData.building}
-          onChange={handleChange}
-          required
-          disabled={isSubmitting}
-        />
-
-        <select
-          name="role"
-          value={formData.role}
-          onChange={handleChange}
-          required
-          disabled={isSubmitting}
+          label={<span style={{ color: 'white' }}>ชื่อ-นามสกุล</span>}
+          rules={[{ required: true, message: 'กรุณากรอกชื่อ-นามสกุล' }]}
         >
-          <option value="">เลือกบทบาท</option>
-          <option value="resident">ลูกบ้าน</option>
-          <option value="juristic">นิติบุคคล</option>
-          <option value="technician">ช่าง</option>
-        </select>
+          <Input />
+        </Form.Item>
 
-        {formData.role === 'technician' && (
-          <input
-            type="password"
+        <Form.Item
+          name="phone"
+          label={<span style={{ color: 'white' }}>เบอร์โทร</span>}
+          rules={[{ required: true, message: 'กรุณากรอกเบอร์โทร' }]}
+        >
+          <Input />
+        </Form.Item>
+
+         <Form.Item
+          name="email"
+          label={<span style={{ color: 'white' }}>อีเมลล์</span>}
+          rules={[{ required: true, message: 'กรุณากรอกเบอร์โทร' }]}
+        >
+          <Input />
+        </Form.Item>
+<Row gutter={16}>
+  <Col span={8}>
+    <Form.Item
+      name="room"
+      label={<span style={{ color: 'white' }}>ห้อง</span>}
+      rules={[{ required: true, message: 'กรุณากรอกห้อง' }]}
+    >
+      <Input />
+    </Form.Item>
+  </Col>
+
+  <Col span={8}>
+    <Form.Item
+      name="building"
+      label={<span style={{ color: 'white' }}>ตึก</span>}
+      rules={[{ required: true, message: 'กรุณากรอกตึก' }]}
+    >
+      <Input />
+    </Form.Item>
+  </Col>
+
+  <Col span={8}>
+    <Form.Item
+      name="role"
+      label={<span style={{ color: 'white' }}>บทบาท</span>}
+      rules={[{ required: true, message: 'กรุณาเลือกบทบาท' }]}
+    >
+      <Select placeholder="เลือกบทบาท" onChange={(value) => setRole(value)}>
+        <Option value="resident">ลูกบ้าน</Option>
+        <Option value="juristic">นิติบุคคล</Option>
+        <Option value="technician">ช่าง</Option>
+      </Select>
+    </Form.Item>
+  </Col>
+</Row>
+
+        {role === 'technician' && (
+          <Form.Item
             name="keycode"
-            placeholder="กรอกรหัสช่าง"
-            value={formData.keycode}
-            onChange={handleChange}
-            required
-            disabled={isSubmitting}
-          />
+            label="รหัสช่าง"
+            rules={[{ required: true, message: 'กรุณากรอกรหัสช่าง' }]}
+          >
+            <Input.Password />
+          </Form.Item>
         )}
 
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ลงทะเบียน'}
-        </button>
-      </form>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" block loading={isSubmitting}>
+            ลงทะเบียน
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
 };
