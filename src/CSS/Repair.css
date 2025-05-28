@@ -1,6 +1,7 @@
  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
 
- body {       
+ body {     
+    
       font-family: 'Kanit', sans-serif;
       background: #f7f7f7; margin: 0; }
     .tab-bar {
