@@ -17,7 +17,7 @@ const Register = () => {
   const [role, setRole] = useState('');
   const navigate = useNavigate();
 
- /* useEffect(() => {
+ useEffect(() => {
     const initLiff = async () => {
       try {
         await liff.init({ liffId: '2007355122-xBNrkXmM', withLoginOnExternalBrowser: true });
@@ -44,7 +44,7 @@ const Register = () => {
     };
 
     initLiff();
-  }, []);*/
+  }, []);
 
   const onFinish = async (values) => {
     if (!userId) {
@@ -167,12 +167,22 @@ const Register = () => {
             <Input.Password />
           </Form.Item>
         )}
-
+<Row gutter={20}>
+    <Col span={10}>
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={isSubmitting}>
-            ลงทะเบียน
+            ยกเลิก
           </Button>
         </Form.Item>
+          </Col>
+           <Col span={10}>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" block loading={isSubmitting}>
+            ยินยัน
+          </Button>
+        </Form.Item>
+          </Col>
+        </Row>
       </Form>
     </div>
   );
