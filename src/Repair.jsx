@@ -72,7 +72,7 @@ function Repair() {
   };
 
   try {
-    const subcollectionName = type; // 'repair' หรือ 'complaint'
+    const subcollectionName = type; 
     const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
 
     await addDoc(repairCollectionRef, {
@@ -82,7 +82,7 @@ function Repair() {
       userId,
       userInfo,
       createdAt: serverTimestamp(),
-      media: base64Data || null, // บันทึก base64 ถ้ามี
+      media: base64Data || null, 
       mediaType: file?.type || null,
       mediaName: file?.name || null,
     });
