@@ -5,7 +5,8 @@ import { db } from './firebase';
 import liff from '@line/liff';
 import { useNavigate } from 'react-router-dom';
 import { Row, Col } from 'antd';
-import "./CSS/Register.css";
+
+
 const { Title } = Typography;
 const { Option } = Select;
 
@@ -17,7 +18,7 @@ const Register = () => {
   const [role, setRole] = useState('');
   const navigate = useNavigate();
 
- useEffect(() => {
+ /* useEffect(() => {
     const initLiff = async () => {
       try {
         await liff.init({ liffId: '2007355122-xBNrkXmM', withLoginOnExternalBrowser: true });
@@ -44,7 +45,7 @@ const Register = () => {
     };
 
     initLiff();
-  }, []);
+  }, []);*/
 
   const onFinish = async (values) => {
     if (!userId) {
@@ -115,17 +116,13 @@ const Register = () => {
           <Input />
         </Form.Item>
 
-       <Form.Item
+         <Form.Item
           name="email"
-          label={<span style={{ color: 'white' }}>อีเมล</span>}
-          rules={[
-            { required: true, message: 'กรุณากรอกอีเมล' },
-            { type: 'email', message: 'รูปแบบอีเมลไม่ถูกต้อง' }
-          ]}
+          label={<span style={{ color: 'white' }}>อีเมลล์</span>}
+          rules={[{ required: true, message: 'กรุณากรอกเบอร์โทร' }]}
         >
           <Input />
         </Form.Item>
-
 <Row gutter={16}>
   <Col span={8}>
     <Form.Item
@@ -171,22 +168,12 @@ const Register = () => {
             <Input.Password />
           </Form.Item>
         )}
-<Row gutter={20}>
-    <Col span={10}>
+
         <Form.Item>
           <Button type="primary" htmlType="submit" block loading={isSubmitting}>
-            ยกเลิก
+            ลงทะเบียน
           </Button>
         </Form.Item>
-          </Col>
-           <Col span={10}>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" block loading={isSubmitting}>
-            ยินยัน
-          </Button>
-        </Form.Item>
-          </Col>
-        </Row>
       </Form>
     </div>
   );
