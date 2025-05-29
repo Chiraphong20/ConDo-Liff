@@ -2,31 +2,42 @@ import React, { useState, useEffect } from 'react';
 import './CSS/machanic.css';
 import { Input, Image, DatePicker } from 'antd';
 import { db } from './firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import dayjs from 'dayjs';
-import { useNavigate } from 'react-router-dom'; // << เพิ่ม
-
-const dummyRepairData = {
-  id: 'repair123',
-  room: '116',
-  name: 'สุดหล่อ คนดี',
-  topic: 'ประตูพัง',
-  details: 'มีสนิมเกาะไม่สามารถใช้งานชั่วคราวได้',
-  phone: '0812345678',
-  imageUrl: 'https://s.isanook.com/wo/0/ud/45/228153/228153-20221224084331-ed33440.jpg?ip/resize/w728/q80/jpg',
-};
+import { useNavigate, useParams } from 'react-router-dom'; // เพิ่ม useParams
 
 const Machanic = () => {
-  const [formData, setFormData] = useState({
-    date: null,
-  });
-
+  const [formData, setFormData] = useState({ date: null });
   const [repairData, setRepairData] = useState(null);
-  const navigate = useNavigate(); // << สำหรับเปลี่ยนหน้า
+  const navigate = useNavigate();
+
+  const { repairId } = useParams(); // สมมติว่า path จะเป็น /machanic/:repairId
 
   useEffect(() => {
-    setRepairData(dummyRepairData);
-  }, []);
+    const fetchRepairData = async () => {
+      try {
+        const docRef = doc(db, 'repairs', repairId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setRepairData({ id: docSnap.id, ...data });
+          if (data.mechanicDate) {
+            setFormData({ date: data.mechanicDate });
+          }
+        } else {
+          alert('ไม่พบข้อมูลการซ่อม');
+          navigate(-1);
+        }
+      } catch (error) {
+        console.error('โหลดข้อมูลผิดพลาด', error);
+        alert('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      }
+    };
+
+    if (repairId) {
+      fetchRepairData();
+    }
+  }, [repairId, navigate]);
 
   const handleDateChange = (date, dateString) => {
     setFormData({ date: dateString });
@@ -41,14 +52,14 @@ const Machanic = () => {
     }
 
     try {
-      const repairRef = doc(db, 'repairs', repairData.id);
+      const repairRef = doc(db, 'repairs', repairId);
       await updateDoc(repairRef, {
         mechanicDate: formData.date,
         status: 'scheduled',
       });
 
       alert('บันทึกวันที่สำเร็จ');
-      navigate('/dashboard'); // เปลี่ยน path ได้ตามที่คุณต้องการ
+      navigate('/dashboard'); // หรือ path ที่ต้องการกลับ
     } catch (error) {
       console.error('Error updating document:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
@@ -56,7 +67,7 @@ const Machanic = () => {
   };
 
   const handleCancel = () => {
-    navigate(-1); // ย้อนกลับ 1 หน้า หรือจะใช้ navigate('/dashboard') ก็ได้
+    navigate(-1);
   };
 
   if (!repairData) return <p>กำลังโหลด...</p>;
@@ -76,21 +87,20 @@ const Machanic = () => {
         <Input value={repairData.topic} disabled />
 
         <label>รายละเอียด</label>
-        <Input.TextArea value={repairData.details} disabled rows={4} />
+        <Input.TextArea value={repairData.details || repairData.detail} disabled rows={4} />
 
         <label>เบอร์โทรศัพท์</label>
         <Input value={repairData.phone} disabled />
 
-        
-
         <label>ภาพประกอบ</label>
-        <div style={{ marginTop: '20px' ,marginBottom: '20px'}}>
-  <Image
-    width={200}
-    src={repairData.imageUrl}
-    alt="รูปภาพจากลูกบ้าน"
-  />
-</div>
+        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+          <Image
+            width={200}
+            src={repairData.imageUrl || repairData.image}
+            alt="รูปภาพจากลูกบ้าน"
+          />
+        </div>
+
         <label>วันที่จะเข้าซ่อม</label>
         <DatePicker
           style={{ width: '100%' }}
