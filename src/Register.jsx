@@ -115,13 +115,17 @@ const Register = () => {
           <Input />
         </Form.Item>
 
-         <Form.Item
+       <Form.Item
           name="email"
-          label={<span style={{ color: 'white' }}>อีเมลล์</span>}
-          rules={[{ required: true, message: 'กรุณากรอกเบอร์โทร' }]}
+          label={<span style={{ color: 'white' }}>อีเมล</span>}
+          rules={[
+            { required: true, message: 'กรุณากรอกอีเมล' },
+            { type: 'email', message: 'รูปแบบอีเมลไม่ถูกต้อง' }
+          ]}
         >
           <Input />
         </Form.Item>
+
 <Row gutter={16}>
   <Col span={8}>
     <Form.Item
