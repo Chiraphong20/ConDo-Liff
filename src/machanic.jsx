@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import './CSS/machanic.css';
-import { Input, Image, DatePicker } from 'antd';
-import { db } from './firebase';
+import { useParams, useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from './firebase';
 import dayjs from 'dayjs';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Input, DatePicker, Image } from 'antd';
 import liff from '@line/liff';
 
 const Machanic = () => {
+  const { userId, repairId } = useParams();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ date: null });
   const [repairData, setRepairData] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const navigate = useNavigate();
-
-  const { repairId } = useParams();
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     const fetchRepairData = async () => {
@@ -25,12 +23,9 @@ const Machanic = () => {
         }
 
         const profile = await liff.getProfile();
-        const uid = profile.userId;
-        setUserId(uid);
+        setCurrentUserId(profile.userId);
 
-        // สมมติว่า repairId รูปแบบ USERID_rawId
-        const [ownerId, rawId] = repairId.split('_');
-        const docRef = doc(db, 'users', ownerId, 'repair', rawId);
+        const docRef = doc(db, 'users', userId, 'repair', repairId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -49,10 +44,10 @@ const Machanic = () => {
       }
     };
 
-    if (repairId) {
+    if (userId && repairId) {
       fetchRepairData();
     }
-  }, [repairId, navigate]);
+  }, [userId, repairId, navigate]);
 
   const handleDateChange = (date, dateString) => {
     setFormData({ date: dateString });
@@ -67,11 +62,10 @@ const Machanic = () => {
     }
 
     try {
-      const [ownerId, rawId] = repairId.split('_');
-      const repairRef = doc(db, 'users', ownerId, 'repair', rawId);
+      const repairRef = doc(db, 'users', userId, 'repair', repairId);
       await updateDoc(repairRef, {
         mechanicDate: formData.date,
-        status: 'scheduled',
+        status: 'in progress',
       });
 
       alert('บันทึกวันที่สำเร็จ');
@@ -79,23 +73,6 @@ const Machanic = () => {
     } catch (error) {
       console.error('Error updating document:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-    }
-  };
-
-  const handleAcceptCase = async () => {
-    try {
-      const [ownerId, rawId] = repairId.split('_');
-      const repairRef = doc(db, 'users', ownerId, 'repair', rawId);
-
-      await updateDoc(repairRef, {
-        status: 'in progress',
-      });
-
-      alert('ยอมรับเคสเรียบร้อย สถานะเปลี่ยนเป็น "in progress"');
-      navigate('/machaniccase');
-    } catch (error) {
-      console.error('Error updating status:', error);
-      alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
     }
   };
 
@@ -120,11 +97,7 @@ const Machanic = () => {
         <Input value={repairData.topic} disabled />
 
         <label>รายละเอียด</label>
-        <Input.TextArea
-          value={repairData.details || repairData.detail}
-          disabled
-          rows={4}
-        />
+        <Input.TextArea value={repairData.details || repairData.detail} disabled rows={4} />
 
         <label>เบอร์โทรศัพท์</label>
         <Input value={repairData.phone} disabled />
@@ -146,24 +119,12 @@ const Machanic = () => {
           value={formData.date ? dayjs(formData.date) : null}
         />
 
-        <div className="submit" style={{ marginTop: 16 }}>
-          <button
-            type="button"
-            className="buttoncancel"
-            onClick={handleCancel}
-          >
+        <div className="submit">
+          <button type="button" className="buttoncancel" onClick={handleCancel}>
             ยกเลิก
           </button>
           <button type="submit" className="buttonOK">
             บันทึกวันที่
-          </button>
-          <button
-            type="button"
-            className="buttonAccept"
-            onClick={handleAcceptCase}
-            style={{ marginLeft: 12, backgroundColor: '#4caf50', color: 'white' }}
-          >
-            ยอมรับเคส
           </button>
         </div>
       </form>
