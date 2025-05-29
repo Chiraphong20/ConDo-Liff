@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, Card, Row, Col, Typography } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collectionGroup, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
-import liff from '@line/liff'; // 👈 เพิ่ม
+import liff from '@line/liff'; 
 
 const { Title, Text } = Typography;
 
@@ -27,15 +27,27 @@ const MachanicCase = () => {
         const uid = profile.userId;
         setUserId(uid);
 
-        const repairColRef = collection(db, 'users', uid, 'repair');
-        const snapshot = await getDocs(repairColRef);
-        const repairs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+       const repairSnapshot = await getDocs(collectionGroup(db, 'repair'));
+const repairs = repairSnapshot.docs.map(doc => {
+  const data = doc.data();
+  return {
+    id: doc.id,
+    ...data,
+    ...data.userInfo,  // ดึงข้อมูลผู้ใช้ที่แนบมากับ repair
+    image: data.media, // แปลง media เป็น image
+    topic: data.title,
+    detail: data.description,
+    date: data.createdAt?.toDate().toLocaleDateString() || '-',
+    status: data.status || 'pending'
+  };
+});
 
-        const orders = repairs.filter(r => !r.status || r.status === 'pending');
-        const status = repairs.filter(r => r.status && r.status !== 'pending');
 
-        setRepairOrders(orders);
-        setRepairStatus(status);
+     const orders = repairs.filter(r => !r.status || r.status === 'pending');
+const status = repairs.filter(r => r.status && r.status !== 'pending');
+
+setRepairOrders(orders);
+setRepairStatus(status);
       } catch (error) {
         console.error('โหลดข้อมูลซ่อมไม่สำเร็จ', error);
       }
