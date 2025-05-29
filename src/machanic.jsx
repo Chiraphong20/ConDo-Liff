@@ -5,12 +5,12 @@ import { db } from './firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import dayjs from 'dayjs';
 import { useNavigate, useParams } from 'react-router-dom';
-import liff from '@line/liff'; // เพิ่ม liff
+import liff from '@line/liff';
 
 const Machanic = () => {
   const [formData, setFormData] = useState({ date: null });
   const [repairData, setRepairData] = useState(null);
-  const [userId, setUserId] = useState(null); // userId ของเจ้าของ repair
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
 
   const { repairId } = useParams();
@@ -26,10 +26,10 @@ const Machanic = () => {
 
         const profile = await liff.getProfile();
         const uid = profile.userId;
-        setUserId(uid); // เซ็ต userId ไว้ใช้ตอน update
+        setUserId(uid);
 
-        // ต้องรู้ userId ของ repair นั้น → สมมติว่า repairId มี structure เช่น "USERID_อะไรก็ได้"
-        const [ownerId, rawId] = repairId.split('_'); // สมมุติว่า repairId เก็บไว้แบบนี้
+        // สมมติว่า repairId รูปแบบ USERID_rawId
+        const [ownerId, rawId] = repairId.split('_');
         const docRef = doc(db, 'users', ownerId, 'repair', rawId);
         const docSnap = await getDoc(docRef);
 
@@ -82,6 +82,23 @@ const Machanic = () => {
     }
   };
 
+  const handleAcceptCase = async () => {
+    try {
+      const [ownerId, rawId] = repairId.split('_');
+      const repairRef = doc(db, 'users', ownerId, 'repair', rawId);
+
+      await updateDoc(repairRef, {
+        status: 'in progress',
+      });
+
+      alert('ยอมรับเคสเรียบร้อย สถานะเปลี่ยนเป็น "in progress"');
+      navigate('/machaniccase');
+    } catch (error) {
+      console.error('Error updating status:', error);
+      alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ');
+    }
+  };
+
   const handleCancel = () => {
     navigate(-1);
   };
@@ -103,7 +120,11 @@ const Machanic = () => {
         <Input value={repairData.topic} disabled />
 
         <label>รายละเอียด</label>
-        <Input.TextArea value={repairData.details || repairData.detail} disabled rows={4} />
+        <Input.TextArea
+          value={repairData.details || repairData.detail}
+          disabled
+          rows={4}
+        />
 
         <label>เบอร์โทรศัพท์</label>
         <Input value={repairData.phone} disabled />
@@ -125,12 +146,24 @@ const Machanic = () => {
           value={formData.date ? dayjs(formData.date) : null}
         />
 
-        <div className="submit">
-          <button type="button" className="buttoncancel" onClick={handleCancel}>
+        <div className="submit" style={{ marginTop: 16 }}>
+          <button
+            type="button"
+            className="buttoncancel"
+            onClick={handleCancel}
+          >
             ยกเลิก
           </button>
           <button type="submit" className="buttonOK">
             บันทึกวันที่
+          </button>
+          <button
+            type="button"
+            className="buttonAccept"
+            onClick={handleAcceptCase}
+            style={{ marginLeft: 12, backgroundColor: '#4caf50', color: 'white' }}
+          >
+            ยอมรับเคส
           </button>
         </div>
       </form>
