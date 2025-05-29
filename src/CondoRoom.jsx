@@ -1,30 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input, Button, Modal, Form } from 'antd';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { db } from './firebase';
 import './CSS/CondoRoom.css';
 
 const CondoRoom = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [rooms, setRooms] = useState([
-    { room: '115', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
-    { room: '116', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
-    { room: '117', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
-    { room: '118', name: 'นาย สุดหล่อ คนดี', phone: '0938134123' },
- 
-
-
-
-  ]);
-
+  const [rooms, setRooms] = useState([]);
   const [form] = Form.useForm();
 
-  const handleAddRoom = (values) => {
-    setRooms([...rooms, {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, 'users'));
+        const userData = querySnapshot.docs.map(doc => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setRooms(userData);
+      } catch (err) {
+        console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', err);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleAddRoom = async (values) => {
+    const newRoom = {
       room: values.roomNumber,
       name: values.residentName,
       phone: values.phone,
-    }]);
-    setModalVisible(false);
-    form.resetFields();
+      uid: values.uid || '',
+      moveInDate: values.moveInDate || '',
+    };
+
+    try {
+      await addDoc(collection(db, 'users'), newRoom);
+      setRooms([...rooms, newRoom]);
+      form.resetFields();
+      setModalVisible(false);
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการเพิ่มห้อง:', err);
+    }
   };
 
   return (
@@ -34,10 +52,8 @@ const CondoRoom = () => {
           <img src="https://cdn-icons-png.flaticon.com/512/54/54481.png" width="20" height="20" alt="search" />
           <Input placeholder="ค้นหา..." bordered={false} />
         </div>
-       <p>ข้อมูลห้อง</p>
-    <Button className="btn-large" onClick={() => setModalVisible(true)}>
-  เพิ่มห้อง +
-</Button>
+        <p>ข้อมูลห้อง</p>
+        <Button className="btn-large" onClick={() => setModalVisible(true)}>เพิ่มห้อง +</Button>
       </div>
 
       <div className="room-section">
