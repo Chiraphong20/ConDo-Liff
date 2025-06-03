@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Tabs, Card, Row, Col, Typography } from 'antd';
+import { Tabs, Card, Row, Col, Typography, Spin } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { collectionGroup, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
-import liff from '@line/liff'; 
+import liff from '@line/liff';
+import "./CSS/MachanicCase.css";
 
 const { Title, Text } = Typography;
 
@@ -13,115 +14,164 @@ const MachanicCase = () => {
   const [repairOrders, setRepairOrders] = useState([]);
   const [repairStatus, setRepairStatus] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  // ✅ เรียก LIFF เพื่อดึง userId ของช่าง
   useEffect(() => {
-    const initLiffAndFetchRepairs = async () => {
+    const initLiff = async () => {
       try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' });
+        await liff.init({ liffId: '2007355122-N49L86B2' });
         if (!liff.isLoggedIn()) {
           liff.login();
-          return;
+        } else {
+          const profile = await liff.getProfile();
+          setUserId(profile.userId);
         }
-
-        const profile = await liff.getProfile();
-        const uid = profile.userId;
-        setUserId(uid);
-
-       const repairSnapshot = await getDocs(collectionGroup(db, 'repair'));
-const repairs = repairSnapshot.docs.map(doc => {
-  const data = doc.data();
-  return {
-    id: doc.id,
-    ...data,
-    ...data.userInfo,  // ดึงข้อมูลผู้ใช้ที่แนบมากับ repair
-    image: data.media, // แปลง media เป็น image
-    topic: data.title,
-    detail: data.description,
-    date: data.createdAt?.toDate().toLocaleDateString() || '-',
-    status: data.status || 'pending'
-  };
-});
-
-
-     const orders = repairs.filter(r => !r.status || r.status === 'pending');
-const status = repairs.filter(r => r.status && r.status !== 'pending');
-
-setRepairOrders(orders);
-setRepairStatus(status);
       } catch (error) {
-        console.error('โหลดข้อมูลซ่อมไม่สำเร็จ', error);
+        console.error('❌ LIFF Error:', error);
       }
     };
-
-    initLiffAndFetchRepairs();
+    initLiff();
   }, []);
 
-  const handleCardClick = (tab) => {
-    navigate(tab === 'orders' ? '/machanic' : '/machanicstatus');
+  // ✅ โหลดงานจาก assignedTasks
+  useEffect(() => {
+    const fetchAssignedTasks = async () => {
+      if (!userId) return;
+      setLoading(true);
+
+      try {
+        const assignedRef = collection(db, 'users', userId, 'assignedTasks');
+        const assignedSnap = await getDocs(assignedRef);
+
+        const assignedList = assignedSnap.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            ...(data.userInfo || {}),
+            image: data.media || '',
+            topic: data.title || '',
+            detail: data.description || '',
+            date: data.createdAt?.toDate?.().toLocaleDateString?.() || '-',
+            status: data.status || 'pending',
+          };
+        });
+
+        const orders = assignedList.filter(r => r.status === 'กำลังดำเนินการ' || !r.status || r.status === 'pending');
+        const status = assignedList.filter(r => r.status && r.status !== 'pending' && r.status !== 'กำลังดำเนินการ');
+
+        setRepairOrders(orders);
+        setRepairStatus(status);
+      } catch (error) {
+        console.error('❌ ดึงข้อมูลไม่สำเร็จ:', error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchAssignedTasks();
+  }, [userId]);
+
+  const handleCardClick = (item, tab) => {
+    navigate(`/machanic/${userId}/${item.id}`);
   };
 
+  const currentItems = activeTab === 'orders' ? repairOrders : repairStatus;
+
   return (
-    <div className="container" style={{ padding: 16 }}>
-      <h2 style={{ textAlign: 'center' }}>
-        {activeTab === 'orders' ? 'เคสสั่งซ่อม' : 'สถานะเคสสั่งซ่อม'}
-      </h2>
+    <div
+    className="container"
+    style={{
+      padding: '300px 16px 16px',
+      backgroundColor: '#fff', // พื้นหลังสีขาว
+      minHeight: '100vh' // ให้เต็มหน้าจอ
+    }}
+  >
+    <h2 style={{ textAlign: 'center', marginBottom: 24, color: '#FFF' }}>
+      {activeTab === 'orders' ? 'เคสสั่งซ่อม' : 'สถานะเคสสั่งซ่อม'}
+    </h2>
+    <Tabs
+      activeKey={activeTab}
+      onChange={setActiveTab}
+      centered
+      tabBarStyle={{
+        color: '#fff',             
+      }}
+      items={[
+        { key: 'orders', label: <span style={{ color: '#fff' }}>คำสั่งซ่อม</span> },
+        { key: 'status', label: <span style={{ color: '#fff' }}>สถานะการซ่อม</span> },
+      ]}
+    />
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: 50 }}>
+          <Spin tip="กำลังโหลดงาน..." size="large" />
+        </div>
+      ) : currentItems.length === 0 ? (
+        <p style={{ textAlign: 'center' }}>ยังไม่มีงาน</p>
+      ) : (
+        currentItems.map(item => (
+          <Card
+            key={item.id}
+            hoverable
+            onClick={() => handleCardClick(item, activeTab)}
+            style={{
+              width: '95%',
+              maxWidth: 440,
+              borderRadius: 16,
+              boxShadow: '0 6px 16px rgba(0, 0, 0, 0.1)',
+              margin: '20px auto',
+              backgroundColor: '#f9f9f9',
+            }}
+          >
+            <Row gutter={16} style={{ alignItems: 'center' }}>
+              <Col span={8}>
+                <img
+                  src={item.image || 'https://via.placeholder.com/140'}
+                  alt={item.topic}
+                  style={{
+                    width: '100%',
+                    height: 120,
+                    objectFit: 'cover',
+                    borderRadius: 12,
+                    display: 'block',
+                  }}
+                />
+              </Col>
+             <Col
+            span={16}
+            className="card-text"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
+            <div style={{ textAlign: 'left', paddingLeft: 8 }}>
+              <Title level={5} style={{ margin: '0 0 4px 0' }}>ห้อง: {item.room || '-'}</Title>
+              
+              <label>ชื่อ: </label>{item.name || '-'}<br />
+              <label>เบอร์: </label>{item.phone || '-'}<br />
+              <label>หัวข้อ: </label>{item.topic || '-'}<br />
+              <label>รายละเอียด: </label><br />
+              <span style={{ fontSize: 12, display: 'inline-block', marginBottom: 4 }}>
+                {item.detail || '-'}
+              </span><br />
 
-      <Tabs
-        activeKey={activeTab}
-        onChange={(key) => setActiveTab(key)}
-        centered
-        items={[
-          { key: 'orders', label: 'คำสั่งซ่อม' },
-          { key: 'status', label: 'สถานะการซ่อม' },
-        ]}
-      />
+              {item.status && (
+                <>
+                  <label>สถานะ: </label>
+                  <span style={{ color: 'red' }}>{item.status}</span><br />
+                </>
+              )}
 
-      {(activeTab === 'orders' ? repairOrders : repairStatus).map((item) => (
-        <Card
-          key={item.id}
-          hoverable
-          onClick={() => handleCardClick(activeTab)}
-          style={{
-            width: 400,
-            borderRadius: 12,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            margin: '16px auto',
-          }}
-        >
-          <Row gutter={16} style={{ alignItems: 'center' }}>
-            <Col span={8}>
-              <img
-                src={item.image || 'https://via.placeholder.com/140'}
-                alt={item.topic}
-                style={{
-                  width: '100%',
-                  height: 140,
-                  objectFit: 'cover',
-                  borderRadius: 18,
-                  display: 'block',
-                }}
-              />
-            </Col>
-            <Col span={16} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div style={{ textAlign: 'left' }}>
-                <Title level={5} style={{ margin: 0 }}>ห้อง: {item.room || '-'}</Title>
-                <Text strong>ชื่อ: </Text>{item.name || '-'}<br />
-                <Text strong>เบอร์: </Text>{item.phone || '-'}<br />
-                <Text strong>หัวข้อ: </Text>{item.topic || '-'}<br />
-                <Text strong>รายละเอียด: </Text><br />
-                <Text type="secondary" style={{ fontSize: 12 }}>{item.detail || '-'}</Text><br />
-                {item.status && (
-                  <>
-                    <Text strong>สถานะ: </Text>
-                    <Text type="danger">{item.status}</Text><br />
-                  </>
-                )}
-                <Text strong>วันที่: </Text>{item.date || '-'}
-              </div>
-            </Col>
-          </Row>
-        </Card>
-      ))}
+              <label>วันที่: </label>{item.date || '-'}
+            </div>
+          </Col>
+            </Row>
+          </Card>
+        ))
+      )}
     </div>
   );
 };

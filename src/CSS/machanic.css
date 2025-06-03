@@ -3,5 +3,24 @@ form label {
   text-align: left;
   margin-top: 1rem;
   font-weight: bold;
-  color: #333;
+  color: #ffffff;
+}
+
+.mac .ant-input,
+.mac .ant-input[disabled] {
+  color: white;
+}
+
+.mac .ant-input[disabled]::placeholder {
+  color: white;
+  opacity: 1; /* เพื่อให้ placeholder สีขาวชัด */
+}
+.mac .ant-input-textarea,
+.mac .ant-input-textarea[disabled] {
+  color: white;
+}
+
+.mac .ant-input-textarea[disabled]::placeholder {
+  color: white;
+  opacity: 1;
 }

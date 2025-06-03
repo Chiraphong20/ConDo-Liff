@@ -1,4 +1,51 @@
-.custom-card-shadow {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
+/* Container ของหน้า */
+.container-case {
+  padding: 300px 16px 16px;
+}
+
+/* ข้อมูลฝั่งขวาใน Card */
+.info-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.info-container {
+  text-align: left;
+  padding-left: 8px;
+}
+
+/* Title ห้อง */
+.info-room {
+  margin: 0 0 4px 0;
+  color: #1890ff;
+}
+
+/* Label เช่น "ชื่อ", "เบอร์", "หัวข้อ" */
+.info-label {
+  color: #fa541c;
+  font-weight: 600;
+}
+
+/* Value ของข้อมูล */
+.info-value {
+  color: #000;
+}
+
+/* รายละเอียด */
+.info-detail {
+  font-size: 12px;
+  display: inline-block;
+  margin-bottom: 4px;
+  color: #888;
+}
+
+/* สถานะ */
+.info-status {
+  color: #f5222d;
+}
+
+.card-text label {
+  font-weight: bold;
+  color: #000;
 }

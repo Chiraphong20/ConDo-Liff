@@ -1,11 +1,12 @@
-.content {
+.content-room {
   flex: 1;
   display: flex;
   flex-direction: column;
   padding: 20px;
-  background: #f4f4f4;
+  background: #FFF;
   min-height: 100vh;
   font-family: 'Kanit', sans-serif;
+  width: 86vw;
 
 }
 
@@ -27,7 +28,7 @@
   padding: 5px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   width: 15%; /* กว้าง 80% ของ container */
-  max-width: 500px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
+  max-width: 50px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
   margin-left: 20px;
 }
 
@@ -57,14 +58,15 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
   gap: 20px;
+  width: 80vw;
 }
 
 .room-card {
   display: flex;
   flex-direction: column;
-  align-items: center; /* จัดรูปและเนื้อหาตรงกลางแนวแกน X */
-  justify-content: center; /* ถ้าต้องการจัดกลางแนว Y ด้วย */
-  text-align: center; /* จัดข้อความใต้รูปให้อยู่ตรงกลาง */
+  align-items: center; 
+  justify-content: center; 
+  text-align: center; 
 }
 
 .room-card img {
@@ -91,4 +93,8 @@
 .save {
   background: #4CAF50;
   color: white;
+}
+
+.repair-raa .p .strong {
+  color: black;
 }

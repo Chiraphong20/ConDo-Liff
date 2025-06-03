@@ -1,113 +1,80 @@
- @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
-
- body {     
-    
-      font-family: 'Kanit', sans-serif;
-      background: #f7f7f7; margin: 0; }
-    .tab-bar {
-      display: flex;
-      justify-content: center;
-      background: F5F6FA;
-      border-bottom: 1px solid #ddd;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 15px;
-      cursor: pointer;
-      font-weight: bold;
-      border-bottom: 3px solid transparent;
-      color: #999;
-    }
-
-    .tab.active {
-      color: #000;
-      border-bottom: 3px solid #007bff;
-    }
-
-    .container {
-      padding: 20px;
-    }
-
-    label, textarea, input, select, button {
-      display: block;
-      width: 100%;
-      margin-bottom: 15px;
-    }
-
-     input, select {
-      padding: 10px;
-      border-radius: 16px;
-      border: 1px solid #ccc;
-    }
-    .textarea-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 15px;
+.container {
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 450px;
+  margin: 0 auto;
+  min-height: 100vh;
+  color: white;
+  
 }
 
-.textarea-wrapper textarea {
-    width: 60%;
-    padding: 20px;
-    border-radius: 16px;
-    border: 1px solid #ccc;
+.ant-typography {
+  color: white !important;
+  margin-bottom: 24px;
+  font-family: 'Kanit', sans-serif;
+
 }
 
-    button {
-      background: #007bff;
-      color: white;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-     display: block;
-    }
-
-    h2 {
-      text-align: center;
-      margin-top: 0;
-    }
-    input[type="file"] {
-    border: none;
-    padding: 10px 0;
-    background: #f0f0f0;
-    border-radius: 5px;
-    }
-    .uploadpic {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    gap: 10px; 
-    margin-top: 20px;
-        }
-    .uploadpic label {
-    font-size: 16px;
-        }
-    .uploadpic input {
-    margin-top: 5px;
-        }
-        .preview-section {
-  margin-top: 20px;
+.ant-tabs-tab {
+  padding: 12px;
 }
-
-.preview-grid {
+.ant-tabs-nav::before {
+  border-bottom: none !important;
+}
+.tab-icon {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px;
+  border: white;
+  background: #94B9FF;
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
 }
 
-.preview-grid img,
-.preview-grid video {
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+.tab-icon img {
+  width: 40px;
+  height: 40px;
+  border: none;
+  box-shadow: none;
+  object-fit: contain;
+  margin-bottom: 4px;
 }
+
+.ant-form-item-label > label {
+    font-family: 'Kanit', sans-serif;
+  color: white !important;
+}
+
+.ant-upload-wrapper .ant-upload-list-item {
+  background-color: #ffffff !important;
+  color: black;
+}
+
+.or-label {
+  text-align: center;
+  margin: 10px 0;
+  font-weight: bold;
+  color: white;
+}
+
+/* File Upload Button */
+.ant-btn {
+  width: 100%;
+}
+
+/* TextArea */
+textarea {
+  border-radius: 8px;
+}
+
+/* Submit Button */
+.ant-form-item:last-child .ant-btn-primary {
+  background-color: #22C38A;
+  border-color: #22C38A;
+  font-weight: bold;
+}
+
+

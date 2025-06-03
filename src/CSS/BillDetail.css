@@ -1,16 +1,18 @@
-   body {
-      font-family: 'Kanit', sans-serif;
-      margin: 0;
-      background-color: #f2f2f2;
-    }
 
-    .container {
+    .container-bill-detail {
       padding: 20px;
+      color: #000;
+      background-image: url('/images/2.png') !important; /* ✅ ใส่ที่นี่แทน container */
+      width: 100%;
+      height: 100vh;
+      font-family: 'Kanit', sans-serif;
+
     }
 
-    h2 {
+    .container-bill-detail h2 {
       text-align: center;
       margin-bottom: 20px;
+      color: white;
     }
 
     .bill-detail {
@@ -18,8 +20,10 @@
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       padding: 16px;
-      max-width: 360px;
       margin: auto;
+      width: 70vw;
+      margin-top: 50px;
+      
     }
 
     .row {
@@ -56,4 +60,17 @@
     font-size: 0.9em;
     padding: 5px 10px;
     border-radius: 15px;
-}
+    }
+   .pay-button-detail{
+    width: 90%;
+    background-color: #5861FF;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    margin-top: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 50px;
+   }

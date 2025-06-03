@@ -1,53 +1,108 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Button, Modal, Avatar } from 'antd';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from './firebase'; // import firebase config ของคุณ
-import liff from '@line/liff';
+import { Input, Button, Modal, Avatar, Spin } from 'antd';
+import { collection, collectionGroup, getDocs, updateDoc, doc, setDoc } from 'firebase/firestore';
+import { db } from './firebase';
 import './CSS/CondoReport.css';
 
 const CondoReport = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [repairs, setRepairs] = useState([]);
-  const [userId, setUserId] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [items, setItems] = useState([]);
+  const [technicians, setTechnicians] = useState([]);
+  const [selectedTechnician, setSelectedTechnician] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const initLiffAndLoadRepairs = async () => {
+    const loadData = async () => {
+      setLoading(true);
+
       try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
-        const profile = await liff.getProfile();
-        setUserId(profile.userId);
-
-        // ดึงข้อมูลแจ้งซ่อม จาก Firestore subcollection users/{userId}/repair
-        const repairColRef = collection(db, 'users', profile.userId, 'repair');
+        // Load repair
+        const repairColRef = collectionGroup(db, 'repair');
         const repairSnapshot = await getDocs(repairColRef);
-        const repairList = repairSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const repairList = repairSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ref: doc.ref,
+          ...doc.data(),
+          type: 'แจ้งซ่อม',
+        }));
 
-        setRepairs(repairList);
+        // Load complaint
+        const complaintColRef = collectionGroup(db, 'complaint');
+        const complaintSnapshot = await getDocs(complaintColRef);
+        const complaintList = complaintSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ref: doc.ref,
+          ...doc.data(),
+          type: 'ร้องเรียน',
+        }));
+
+        // Load technician list
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const techList = usersSnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(user => user.role === 'technician');
+        setTechnicians(techList);
+
+        setItems([...repairList, ...complaintList]);
       } catch (error) {
-        console.error('โหลดข้อมูลแจ้งซ่อมไม่สำเร็จ:', error);
+        console.error('โหลดข้อมูลไม่สำเร็จ:', error);
       }
+
+      setLoading(false);
     };
 
-    initLiffAndLoadRepairs();
+    loadData();
   }, []);
 
-  const handleCardClick = (repair) => {
-    setSelectedRoom(repair);
+  const handleCardClick = (item) => {
+    setSelectedItem(item);
+    setSelectedTechnician(item.officers?.[0] || null);
     setModalVisible(true);
   };
 
   const handleCancel = () => {
     setModalVisible(false);
-    setSelectedRoom(null);
+    setSelectedItem(null);
+    setSelectedTechnician(null);
+  };
+
+  const handleAssign = async () => {
+    if (!selectedItem || !selectedTechnician) return;
+
+    try {
+      // อัปเดต document เดิม
+      await updateDoc(selectedItem.ref, {
+        officers: [selectedTechnician],
+        status: 'กำลังดำเนินการ',
+      });
+
+      // เพิ่มงานใน assignedTasks ของช่าง
+      await setDoc(
+        doc(db, 'users', selectedTechnician.id, 'assignedTasks', selectedItem.id),
+        {
+          ...selectedItem,
+          officers: [selectedTechnician],
+          status: 'กำลังดำเนินการ',
+          assignedAt: new Date(),
+          createdAt: selectedItem.createdAt || new Date(),
+          userInfo: selectedItem.userInfo || {},
+          media: selectedItem.media || '',
+          title: selectedItem.title || '',
+          description: selectedItem.description || '',
+        }
+      );
+
+      alert('มอบหมายงานเรียบร้อยแล้ว');
+      handleCancel();
+    } catch (err) {
+      console.error('มอบหมายงานไม่สำเร็จ:', err);
+      alert('เกิดข้อผิดพลาดในการมอบหมายงาน');
+    }
   };
 
   return (
-    <div className="content">
+    <div className="content-report">
       <div className="sectionheader">
         <div className="search-box">
           <img src="https://cdn-icons-png.flaticon.com/512/54/54481.png" width="20" height="20" alt="search" />
@@ -55,94 +110,101 @@ const CondoReport = () => {
         </div>
         <p>รับเรื่องร้องขอ</p>
         <div className="Group">
-          <Button className="btn-add" onClick={() => setModalVisible(true)}>
-            รับเรื่อง
-          </Button>
-          <Button className="btn-delete">
-            ลบ
-          </Button>
+          <Button className="btn-add" onClick={() => setModalVisible(true)}>รับเรื่อง</Button>
+          <Button className="btn-delete">ลบ</Button>
         </div>
       </div>
 
-      {/* แสดงรายการแจ้งซ่อม */}
       <div className="room-section">
-        {repairs.length === 0 ? (
-          <p>ไม่มีข้อมูลแจ้งซ่อม</p>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 20 }}>
+            <Spin tip="กำลังโหลด..." size="large" />
+          </div>
+        ) : items.length === 0 ? (
+          <p>ไม่มีข้อมูล</p>
         ) : (
-          repairs.map((repair, index) => (
-            <div key={index} className="room-card" onClick={() => handleCardClick(repair)}>
+          items.map((item, index) => (
+            <div key={index} className="room-card" onClick={() => handleCardClick(item)}>
               <img
-                src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
-                alt="building"
+                src={item.type === 'แจ้งซ่อม'
+                  ? 'https://cdn-icons-png.flaticon.com/512/6001/6001179.png'
+                  : 'https://cdn-icons-png.flaticon.com/512/1828/1828911.png'}
+                alt={item.type}
                 style={{ width: 60, margin: '10px 0' }}
               />
-              <div><b>{repair.userInfo?.name || '-'}</b></div>
-              <div><b>เบอร์ : {repair.userInfo?.phone || '-'}</b></div>
-              <div><b>ห้อง {repair.userInfo?.room || '-'}</b></div>
-              <div><b>{repair.title || '-'}</b></div>
+              <div><b>{item.userInfo?.name || '-'}</b></div>
+              <div><b>เบอร์ : {item.userInfo?.phone || '-'}</b></div>
+              <div><b>ห้อง {item.userInfo?.room || '-'}</b></div>
+              <div><b>{item.title || '-'}</b></div>
             </div>
           ))
         )}
       </div>
 
-      {/* Modal รายละเอียดแจ้งซ่อม */}
       <Modal
-        title="รับเรื่องร้องขอ"
+        title={<span style={{ color: 'black' }}>รับเรื่องร้องขอ</span>}
         open={modalVisible}
         onCancel={handleCancel}
         footer={null}
         width={600}
       >
-        {selectedRoom && (
+        {selectedItem && (
           <div>
-            <p><b>หมวดหมู่:</b> {selectedRoom.type || 'แจ้งซ่อม'}</p>
-            <p><b>หัวข้อ:</b> {selectedRoom.title}</p>
+            <p><b>หมวดหมู่:</b> {selectedItem.type}</p>
+            <p><b>หัวข้อ:</b> {selectedItem.title}</p>
             <p><b>ข้อมูลเพิ่มเติม:</b></p>
-            <p>{selectedRoom.description}</p>
+            <p>{selectedItem.description}</p>
 
-            {/* สมมติถ้ามี media เป็น array URL */}
-        {selectedRoom.media && (
-  <>
-    <p><b>มีเดีย:</b></p>
-    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-      {selectedRoom.mediaType?.startsWith('video') ? (
-        <video width="300" height="200" controls style={{ borderRadius: 8 }}>
-          <source src={selectedRoom.media} type={selectedRoom.mediaType} />
-          เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
-        </video>
-      ) : (
-        <img
-          src={selectedRoom.media}
-          alt="media"
-          width={200}
-          height={200}
-          style={{ borderRadius: 8, objectFit: 'cover' }}
-        />
-      )}
-    </div>
-  </>
-)}
-
-
-            {/* แสดงเจ้าหน้าที่ ถ้ามี */}
-            {selectedRoom.officers && selectedRoom.officers.length > 0 && (
+            {selectedItem.media && (
               <>
-                <p style={{ marginTop: 16 }}><b>มอบหมายเจ้าหน้าที่:</b></p>
-                <div style={{ display: 'flex', gap: '20px' }}>
-                  {selectedRoom.officers.map((officer, i) => (
-                    <div key={i} style={{ textAlign: 'center' }}>
-                      <Avatar size={48} />
-                      <p style={{ margin: 4 }}>{officer.name}</p>
-                      <p style={{ fontSize: 12 }}>{officer.phone}</p>
+                <p><b>มีเดีย:</b></p>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {selectedItem.mediaType?.startsWith('video') ? (
+                    <video width="300" height="200" controls style={{ borderRadius: 8 }}>
+                      <source src={selectedItem.media} type={selectedItem.mediaType} />
+                    </video>
+                  ) : (
+                    <img
+                      src={selectedItem.media}
+                      alt="media"
+                      width={200}
+                      height={200}
+                      style={{ borderRadius: 8, objectFit: 'cover' }}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
+            {technicians.length > 0 && (
+              <>
+                <p><b>เลือกช่างเพื่อมอบหมาย:</b></p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                  {technicians.map((tech) => (
+                    <div
+                      key={tech.id}
+                      onClick={() => setSelectedTechnician(tech)}
+                      style={{
+                        border: selectedTechnician?.id === tech.id ? '2px solid #1890ff' : '1px solid #ccc',
+                        padding: 10,
+                        borderRadius: 8,
+                        cursor: 'pointer',
+                        width: 180,
+                        textAlign: 'center',
+                      }}
+                    >
+                      <Avatar size={48} src={tech.profileImage} />
+                      <div style={{ marginTop: 8 }}>{tech.name}</div>
+                      <div style={{ fontSize: 12 }}>{tech.phone}</div>
                     </div>
                   ))}
                 </div>
               </>
             )}
 
-            <div className="modal-buttons">
-              <Button onClick={() => setModalVisible(false)} className="cancel">ยกเลิก</Button>
-              <Button type="primary" className="save">บันทึก</Button>
+            <div style={{ marginTop: 24, display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <Button onClick={handleCancel}>ยกเลิก</Button>
+              <Button type="primary" onClick={handleAssign}>บันทึก</Button>
             </div>
           </div>
         )}

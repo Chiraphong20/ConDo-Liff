@@ -1,153 +1,181 @@
-import React, { useState } from 'react';
-import { Input, Button, Modal, Form, Select, Upload, Avatar } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Modal, Input, Avatar, Button, Spin } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import './CSS/CondoStatus.css';
-
-const { Option } = Select;
+import { collectionGroup, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from './firebase';
 
 const CondoStatus = () => {
+  const [tasks, setTasks] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalType, setModalType] = useState('');
-  const [selectedRoom, setSelectedRoom] = useState(null);
-  const [rooms, setRooms] = useState([
-    {
-      room: '112',
-      name: 'นาย สุดหล่อ คนดี',
-      phone: '0938134123',
-      complaintTopic: 'ข้างห้องเสียงดัง',
-      status: 'กำลังดำเนินการ',
-      detail: 'ddddddddddddddddddddddddd ddddddddddd',
-      media: [
-        'https://cdn.pixabay.com/photo/2016/08/08/09/17/people-1572058_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2017/01/20/00/30/building-1991894_960_720.jpg'
-      ],
-      officers: [
-        { name: 'นายสมพง กกกก', phone: '0921312541' },
-      ]
-    },
-     {
-      room: '113',
-      name: 'นาย สุดหล่อ คนดี',
-      phone: '0938134123',
-      complaintTopic: 'ข้างห้องเสียงดัง',
-      status: 'กำลังดำเนินการ',
-      detail: 'ddddddddddddddddddddddddd ddddddddddd',
-      media: [
-        'https://cdn.pixabay.com/photo/2016/08/08/09/17/people-1572058_960_720.jpg',
-        'https://cdn.pixabay.com/photo/2017/01/20/00/30/building-1991894_960_720.jpg'
-      ],
-      officers: [
-        { name: 'นายสมพง กกกก', phone: '0921312541' },
-      ]
-    }
-    
-  ]);
+  const [loading, setLoading] = useState(false);
 
-  const handleCardClick = (room) => {
-    setSelectedRoom(room);
-    setModalType('view');
+  useEffect(() => {
+    const fetchAssignedTasks = async () => {
+      setLoading(true);
+      try {
+        const assignedTasksSnapshot = await getDocs(collectionGroup(db, 'assignedTasks'));
+        const taskListRaw = assignedTasksSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ref: doc.ref,
+          ...doc.data(),
+        }));
+
+        const userIdsSet = new Set();
+        taskListRaw.forEach(task => {
+          task.officers?.forEach(officer => {
+            if (officer.id) userIdsSet.add(officer.id);
+          });
+        });
+
+        const userProfiles = {};
+        for (const userId of userIdsSet) {
+          const userDoc = await getDoc(doc(db, 'users', userId));
+          if (userDoc.exists()) {
+            userProfiles[userId] = userDoc.data();
+          }
+        }
+
+        const taskList = taskListRaw.map(task => {
+          const officersWithProfile = task.officers?.map(officer => {
+            const profile = userProfiles[officer.id] || {};
+            return {
+              ...officer,
+              profileImage: profile.profileImage || null,
+              name: profile.name || officer.name,
+              phone: profile.phone || officer.phone,
+            };
+          }) || [];
+          return { ...task, officers: officersWithProfile };
+        });
+
+        setTasks(taskList);
+      } catch (error) {
+        console.error('ไม่สามารถโหลดงานที่ได้รับมอบหมาย:', error);
+      }
+      setLoading(false);
+    };
+
+    fetchAssignedTasks();
+  }, []);
+
+  const getBase64Image = (base64String) => {
+    if (!base64String) return null;
+    if (base64String.startsWith('data:image')) return base64String;
+    return `data:image/png;base64,${base64String}`;
+  };
+
+  const handleCardClick = (task) => {
+    setSelectedTask(task);
     setModalVisible(true);
   };
 
   const handleCancel = () => {
+    setSelectedTask(null);
     setModalVisible(false);
-    setSelectedRoom(null);
   };
 
   return (
-    <div className="content">
+    <div className="content-status">
       <div className="sectionheader">
         <div className="search-box">
           <img src="https://cdn-icons-png.flaticon.com/512/54/54481.png" width="20" height="20" alt="search" />
           <Input placeholder="ค้นหา..." bordered={false} />
         </div>
-        <p>ติดตามสภานะ</p>
-        <div className="Group">
-          
-        </div>
+        <p>ติดตามสถานะ</p>
       </div>
 
-      {/* แสดงรายการร้องเรียน */}
       <div className="room-section">
-  {rooms.map((room, index) => (
-    <div key={index} className="room-card">
-      <div className="status-label">
-        <span className="red-dot" />
-        <span className="status-text">{room.status}</span>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 20 }}>
+            <Spin tip="กำลังโหลด..." size="large" />
+          </div>
+        ) : tasks.length === 0 ? (
+          <p>ไม่มีงานที่ได้รับมอบหมาย</p>
+        ) : (
+          tasks.map((task, index) => (
+            <div key={index} className="room-card" onClick={() => handleCardClick(task)}>
+              <div className="status-label">
+                <span className="red-dot" />
+                <span className="status-text">{task.status || 'กำลังดำเนินการ'}</span>
+              </div>
+              <div
+                className="info-icon"
+                style={{ position: 'absolute', top: 10, right: 10, cursor: 'pointer' }}
+              >
+                <InfoCircleOutlined style={{ fontSize: 20, color: '#1890ff' }} />
+              </div>
+              <img
+                src={
+                  task.type === 'แจ้งซ่อม'
+                    ? 'https://cdn-icons-png.flaticon.com/512/6001/6001179.png'
+                    : 'https://cdn-icons-png.flaticon.com/512/1828/1828911.png'
+                }
+                alt="icon"
+                style={{ width: 60, margin: '10px 0' }}
+              />
+              <div><b>{task.userInfo?.name || '-'}</b></div>
+              <div><b>เบอร์ : {task.userInfo?.phone || '-'}</b></div>
+              <div><b>ห้อง {task.userInfo?.room || '-'}</b></div>
+              <div><b>{task.title || '-'}</b></div>
+            </div>
+          ))
+        )}
       </div>
 
-      {/* ปุ่ม i แสดงรายละเอียด */}
-      <div className="info-icon" onClick={() => handleCardClick(room)} style={{ position: 'absolute', top: 10, right: 10, cursor: 'pointer' }}>
-        <InfoCircleOutlined style={{ fontSize: 20, color: '#1890ff' }} />
-      </div>
-
-      <img
-        src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
-        alt="building"
-        style={{ width: 60, margin: '10px 0' }}
-      />
-      <div><b>{room.name}</b></div>
-      <div><b>เบอร์ : {room.phone}</b></div>
-      <div><b>ห้อง {room.room}</b></div>
-      <div><b>{room.complaintTopic}</b></div>
-    </div>
-  ))}
-</div>
-
-      {/* Modal รายละเอียด */}
       <Modal
-        title="รับเรื่องร้องขอ"
+        title="รายละเอียดงาน"
         open={modalVisible}
         onCancel={handleCancel}
         footer={null}
         width={600}
       >
-        {selectedRoom && (
-  <div>
-    <p><b>หมวดหมู่:</b> แจ้งร้องเรียน</p>
-    <p><b>หัวข้อ:</b> {selectedRoom.complaintTopic}</p>
-   
+        {selectedTask && (
+          <div>
+            <p><b>หมวดหมู่:</b> {selectedTask.type}</p>
+            <p><b>หัวข้อ:</b> {selectedTask.title}</p>
+            <p><b>ข้อมูลเพิ่มเติม:</b></p>
+            <p>{selectedTask.description || '-'}</p>
 
-    <p><b>ข้อมูลเพิ่มเติม:</b></p>
-    <p>{selectedRoom.detail}</p>
+            {selectedTask.media && (
+              <>
+                <p><b>มีเดีย:</b></p>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {selectedTask.mediaType?.startsWith('video') ? (
+                    <video width="300" height="200" controls style={{ borderRadius: 8 }}>
+                      <source src={selectedTask.media} type={selectedTask.mediaType} />
+                    </video>
+                  ) : (
+                    <img
+                      src={selectedTask.media}
+                      alt="media"
+                      width={200}
+                      height={200}
+                      style={{ borderRadius: 8, objectFit: 'cover' }}
+                    />
+                  )}
+                </div>
+              </>
+            )}
 
-    <p><b>มีเดีย:</b></p>
-    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-      {selectedRoom.media?.map((url, idx) => (
-        <img key={idx} src={url} alt={`media-${idx}`} width={100} height={100} style={{ borderRadius: 8 }} />
-      ))}
-    </div>
+            <p><b>เจ้าหน้าที่:</b></p>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              {selectedTask.officers?.map((officer, i) => (
+                <div key={i} style={{ textAlign: 'center' }}>
+                  <Avatar size={48} src={getBase64Image(officer.profileImage)} />
+                  <p>{officer.name}</p>
+                  <p style={{ fontSize: 12 }}>{officer.phone}</p>
+                </div>
+              ))}
+            </div>
 
-    <p style={{ marginTop: 16 }}><b>มอบหมายเจ้าหน้าที่:</b></p>
-    <div style={{ display: 'flex', gap: '20px' }}>
-      {selectedRoom.officers?.map((officer, i) => (
-        <div key={i} style={{ textAlign: 'center' }}>
-          <Avatar size={48} />
-          <p style={{ margin: 4 }}>{officer.name}</p>
-          <p style={{ fontSize: 12 }}>{officer.phone}</p>
-        </div>
-      ))}
-    </div>
- <p><b>สถานะ:</b> 
-      <span style={{ marginLeft: 8 }}>
-        <span style={{ 
-          display: 'inline-block', 
-          width: 8, 
-          height: 8, 
-          borderRadius: '50%', 
-          backgroundColor: 'red',  // สีส้ม "กำลังดำเนินการ"
-          marginRight: 6 
-        }} />
-        {selectedRoom.status || 'กำลังดำเนินการ'}
-      </span>
-    </p>
-    <div className="modal-buttons">
-      <Button onClick={() => setModalVisible(false)} className="cancel">ยกเลิก</Button>
-      <Button htmlType="submit" type="primary" className="save">บันทึก</Button>
-    </div>
-  </div>
-)}
+            <p style={{ marginTop: 16 }}><b>สถานะ:</b> {selectedTask.status || 'กำลังดำเนินการ'}</p>
 
+            <div className="modal-buttons" style={{ marginTop: 16 }}>
+              <Button onClick={handleCancel}>ปิด</Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

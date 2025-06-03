@@ -1,47 +1,48 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { db } from "./firebase";
+import { collection, getDocs } from "firebase/firestore";
 import "./CSS/FinancePage.css";
 
 const FinancePage = () => {
+  const [reports, setReports] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const ref = collection(db, "incomes");
+      const snapshot = await getDocs(ref);
+      const data = snapshot.docs.map((doc, index) => ({
+        id: doc.id,
+        ...doc.data(),
+        index,
+      }));
+      setReports(data);
+    };
+
+    fetchData();
+  }, []);
+
   return (
-    <div className="finance-container">
-      <div className="finance-card">
-        <h2>รายงานรายรับ-รายจ่าย</h2>
-        <p className="report-date">ข้อมูล ณ วันที่ <strong>30 เมษายน 2568</strong></p>
+    <div className="finance-report-list">
+      <h2 className="title">รายงานรายรับ-รายจ่าย</h2>
 
-        <div className="section section-income">
-          <h3 className="title green">รายรับ</h3>
-          <div className="line">
-            <span>ส่วนกลาง</span>
-            <span>900,000 บาท</span>
-          </div>
-          <hr />
-          <div className="line total green">
-            <span>รวม</span>
-            <span>900,000 บาท</span>
-          </div>
-        </div>
+      {reports.map((report, index) => (
+        <div key={report.id} className="report-card">
+          <p className="report-label">ข้อมูลแจ้งยอดรายรับ-รายจ่าย</p>
+          <p className="report-date">{report.date}</p>
 
-        <div className="section section-expense">
-          <h3 className="title red">รายจ่าย</h3>
-          <div className="line">
-            <span>ค่าสำนักงาน</span>
-            <span>780,000 บาท</span>
-          </div>
-          <div className="line">
-            <span>ค่าใช้จ่ายส่วนกลาง</span>
-            <span>100,000 บาท</span>
-          </div>
-          <div className="line">
-            <span>ค่าบำรุงรักษา</span>
-            <span>20,000 บาท</span>
-          </div>
-          <hr />
-          <div className="line total red">
-            <span>รวม</span>
-            <span>900,000 บาท</span>
-          </div>
+          {report.image && report.image.length > 0 ? (
+            <div className="report-image-wrapper">
+              <img
+                src={report.image[0]} // แสดงรูปแรกเท่านั้น
+                alt={`report-${index}`}
+                className="report-image"
+              />
+            </div>
+          ) : (
+            <div className="no-image">ไม่มีรูปภาพแนบ</div>
+          )}
         </div>
-      </div>
+      ))}
     </div>
   );
 };

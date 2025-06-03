@@ -7,12 +7,13 @@ import BillDetail from './BillDetail';
 import Register from './Register';
 import Status from './Status';
 import Dashboard from './Dashboard';
-import Machanic from './machanic';
+import Machanic from './Machanic';
 import Machanicstatus from './machanicstatus';
 import MachanicCase from './machaniccase';
 import MenuPage from './MenuPage';
 import Meet from './Meet'; 
 import FinancePage from './FinancePage';
+import PaymentMethod from './PaymentMethod';
 
 function App() {
   return (
@@ -22,13 +23,15 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/repair" element={<Repair />} />
         <Route path="/my-bills" element={<Payment />} />
-        <Route path="/bill-detail" element={<BillDetail />} />
+        <Route path="/bill-detail/:id" element={<BillDetail />} /> 
         <Route path="/register" element={<Register />} />
         <Route path="/status" element={<Status />} />
+        <Route path="/payment-method/:id" element={<PaymentMethod />} />
+
         <Route path="/dashboard/*" element={<Dashboard />} />
         <Route path="/machaniccase" element={<MachanicCase />} />
         <Route path="/machanicstatus" element={<Machanicstatus />} />
-        <Route path="/machanic" element={<Machanic />} />
+        <Route path="/machanic/:userId/:taskId" element={<Machanic />} />
 
         <Route path="/MenuPage" element={<MenuPage />}>
           <Route path="meet" element={<Meet />} />

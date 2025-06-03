@@ -1,177 +1,175 @@
-import React, { useState, useEffect } from 'react';
-import './CSS/Repair.css';
+import React, { useEffect, useState } from 'react';
+import { Form, Input, Button, Select, Upload, Tabs, Typography, message } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import { db } from './firebase';
-import { addDoc, collection, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import liff from '@line/liff';
-
+import './CSS/Repair.css';
+import repairIcon from './assets/repair-icon.png';
+import complaintIcon from './assets/complaint-icon.png';
+const { TabPane } = Tabs;
+const { TextArea } = Input;
+const { Option } = Select;
+const { Title } = Typography;
 
 function Repair() {
-  const [activeTab, setActiveTab] = useState('repair');
   const [userId, setUserId] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
-    const initLiffAndFetchUser = async () => {
+    const initLiff = async () => {
       try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' });
+        await liff.init({ liffId: '2007355122-N49L86B2' });
+
         if (!liff.isLoggedIn()) {
-          liff.login();
+          liff.login({ redirectUri: window.location.href });
           return;
         }
 
         const profile = await liff.getProfile();
         setUserId(profile.userId);
 
-        const userDocRef = doc(db, 'users', profile.userId);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setUserProfile(userDocSnap.data());
+        const userRef = doc(db, 'users', profile.userId);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setUserProfile(userSnap.data());
         } else {
-          alert('ไม่พบข้อมูลผู้ใช้ในระบบ กรุณาลงทะเบียนก่อน');
+          message.warning('ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อน');
         }
-      } catch (err) {
-        console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', err);
+      } catch (error) {
+        message.error('เกิดข้อผิดพลาดในการโหลดข้อมูล LINE: ' + error.message);
       }
     };
 
-    initLiffAndFetchUser();
+    initLiff();
   }, []);
 
-  const handleSubmit = async (e, type) => {
-  e.preventDefault();
-  const form = e.target;
-  const title = form.querySelector('select').value;
-  const description = form.querySelector('textarea').value;
+  const handleSubmit = async (values, type) => {
+    if (!userId || !userProfile) {
+      message.warning('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+      return;
+    }
 
-  if (!userId || !userProfile) {
-    alert('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
-    return;
-  }
+    const { title, description, upload } = values;
 
-  const fileInput = form.querySelector('input[type="file"]');
-  const file = fileInput?.files[0];
+    let base64Data = null;
+    if (upload && upload[0]?.originFileObj) {
+      const file = upload[0].originFileObj;
+      base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
 
-  let base64Data = null;
-  if (file) {
-    base64Data = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
+    const userInfo = {
+      name: userProfile.name || '',
+      phone: userProfile.phone || '',
+      email: userProfile.email || '',
+      role: userProfile.role || '',
+      room: userProfile.room || '',
+      building: userProfile.building || '',
+      userId,
+    };
 
-  const userInfo = {
-    name: userProfile.name || '',
-    phone: userProfile.phone || '',
-    email: userProfile.email || '',
-    role: userProfile.role || '',
-    room: userProfile.room || '',
-    building: userProfile.building || '',
-    userId: userId,
+    try {
+      const subcollectionRef = collection(db, 'users', userId, type);
+      await addDoc(subcollectionRef, {
+        title,
+        description,
+        type,
+        userInfo,
+        createdAt: serverTimestamp(),
+        media: base64Data || null,
+        mediaType: upload?.[0]?.type || null,
+        mediaName: upload?.[0]?.name || null,
+      });
+
+      message.success('✅ ส่งข้อมูลสำเร็จ');
+    } catch (error) {
+      console.error('❌ Error:', error);
+      message.error('เกิดข้อผิดพลาดในการส่งข้อมูล');
+    }
   };
 
-  try {
-    const subcollectionName = type; 
-    const repairCollectionRef = collection(db, 'users', userId, subcollectionName);
-
-    await addDoc(repairCollectionRef, {
-      title,
-      description,
-      type,
-      userId,
-      userInfo,
-      createdAt: serverTimestamp(),
-      media: base64Data || null, 
-      mediaType: file?.type || null,
-      mediaName: file?.name || null,
-    });
-
-    alert('✅ ส่งข้อมูลสำเร็จ');
-    form.reset();
-  } catch (error) {
-    console.error('❌ เกิดข้อผิดพลาด:', error);
-    alert('ส่งข้อมูลไม่สำเร็จ');
-  }
-};
-
-
   return (
-    <div>
-     
-      {/* ปุ่มสลับ Tab */}
-      <div className="tab-bar">
-        <div className={`tab ${activeTab === 'repair' ? 'active' : ''}`} onClick={() => setActiveTab('repair')}>
-          แจ้งซ่อม
-        </div>
-        <div className={`tab ${activeTab === 'complaint' ? 'active' : ''}`} onClick={() => setActiveTab('complaint')}>
-          ร้องเรียน
-        </div>
-      </div>
+    <div className="container">
+      <Title level={4} style={{ textAlign: 'center', color:'white' }}>แจ้งซ่อม / ร้องเรียน</Title>
+      <Tabs defaultActiveKey="repair" centered>
+            <TabPane
+              key="repair"
+              tab={
+                <div className="tab-icon" style={{ color: 'white' }}>
+                  <img src={repairIcon} alt="แจ้งซ่อม" />
+                  <div className="repair-label">แจ้งซ่อม</div>
+                </div>
+              }
+            >
 
-      {/* ฟอร์มแจ้งซ่อม */}
-      {activeTab === 'repair' && (
-        <div className="container tab-content active">
-          <h2>แจ้งซ่อม</h2>
-          <form onSubmit={(e) => handleSubmit(e, 'repair')}>
-            <label>หัวข้อ</label>
-            <select required>
-              <option value="">..................</option>
-              <option value="ซ่อมประตู">ซ่อมประตู</option>
-              <option value="ไฟฟ้า">ไฟฟ้า</option>
-              <option value="ประปา">ประปา</option>
-            </select>
+          <Form layout="vertical" onFinish={(v) => handleSubmit(v, 'repair')}>
+            <Form.Item name="title" label={<span style={{ color: 'white' }}>หัวข้อ</span>} rules={[{ required: true, message: 'กรุณาเลือกหัวข้อ' }]}>
+              <Select placeholder="เลือกประเภทการซ่อม">
+                <Option value="ซ่อมประตู">ซ่อมประตู</Option>
+                <Option value="ไฟฟ้า">ไฟฟ้า</Option>
+                <Option value="ประปา">ประปา</Option>
+              </Select>
+            </Form.Item>
 
-            <label>คำอธิบายเพิ่มเติม</label>
-            <div className="textarea-wrapper">
-              <textarea rows="6" placeholder="อธิบายปัญหา..." required></textarea>
+            <Form.Item name="description" label="คำอธิบายเพิ่มเติม" rules={[{ required: true }]}>
+              <TextArea rows={5} placeholder="อธิบายปัญหา..." />
+            </Form.Item>
+
+            <Form.Item name="upload" label="อัปโหลดวิดีโอ / รูปภาพ" valuePropName="fileList" getValueFromEvent={e => e.fileList}>
+              <Upload beforeUpload={() => false} accept="image/*,video/*" maxCount={1}>
+                <Button icon={<UploadOutlined />}>เลือกไฟล์</Button>
+              </Upload>
+            </Form.Item>
+
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block>ส่งแจ้งซ่อม</Button>
+            </Form.Item>
+          </Form>
+        </TabPane>
+
+        <TabPane
+          key="complaint"
+          tab={
+            <div className="tab-icon" style={{ color: 'white' }}>
+              <img src={complaintIcon} alt="ร้องเรียน" />
+              <div className="repair-label">ร้องเรียน</div>
             </div>
+          }
+        >
 
-            <div className="uploadpic">
-              <label>อัพโหลดวิดีโอ / รูปภาพ</label>
-              <input type="file" accept="image/*,video/*" />
-              <label>หรือ</label>
-              <label>ถ่ายรูป / วิดีโอ</label>
-              <input type="file" accept="image/*,video/*" capture="environment" />
-            </div>
+          <Form layout="vertical" onFinish={(v) => handleSubmit(v, 'complaint')}>
+            <Form.Item name="title" label="หัวข้อ" rules={[{ required: true, message: 'กรุณาเลือกหัวข้อ' }]}>
+              <Select placeholder="เลือกหัวข้อร้องเรียน">
+                <Option value="นิติบุคคลไม่ให้ความร่วมมือ">นิติบุคคลไม่ให้ความร่วมมือ</Option>
+                <Option value="พฤติกรรมเพื่อนบ้าน">พฤติกรรมเพื่อนบ้าน</Option>
+                <Option value="อื่น ๆ">อื่น ๆ</Option>
+              </Select>
+            </Form.Item>
 
-            <button type="submit">ส่งแจ้งซ่อม</button>
-          </form>
-        </div>
-      )}
+            <Form.Item name="description" label="คำอธิบายเพิ่มเติม" rules={[{ required: true }]}>
+              <TextArea rows={5} placeholder="อธิบายปัญหา..." />
+            </Form.Item>
 
-      {/* ฟอร์มร้องเรียน */}
-      {activeTab === 'complaint' && (
-        <div className="container tab-content active">
-          <h2>ร้องเรียน</h2>
-          <form onSubmit={(e) => handleSubmit(e, 'complaint')}>
-            <label>หัวข้อ</label>
-            <select required>
-              <option value="">..................</option>
-              <option value="นิติบุคคลไม่ให้ความร่วมมือ">นิติบุคคลไม่ให้ความร่วมมือ</option>
-              <option value="พฤติกรรมเพื่อนบ้าน">พฤติกรรมเพื่อนบ้าน</option>
-              <option value="อื่น ๆ">อื่น ๆ</option>
-            </select>
+            <Form.Item name="upload" label="อัปโหลดวิดีโอ / รูปภาพ" valuePropName="fileList" getValueFromEvent={e => e.fileList}>
+              <Upload beforeUpload={() => false} accept="image/*,video/*" maxCount={1}>
+                <Button icon={<UploadOutlined />}>เลือกไฟล์</Button>
+              </Upload>
+            </Form.Item>
 
-            <label>คำอธิบายเพิ่มเติม</label>
-            <div className="textarea-wrapper">
-              <textarea rows="6" placeholder="อธิบายปัญหา..." required></textarea>
-            </div>
-
-            <div className="uploadpic">
-              <label>อัพโหลดวิดีโอ / รูปภาพ</label>
-              <input type="file" accept="image/*,video/*" />
-              <label>หรือ</label>
-              <label>ถ่ายรูป / วิดีโอ</label>
-              <input type="file" accept="image/*,video/*" capture="environment" />
-            </div>
-
-            <button type="submit">ส่งเรื่องร้องเรียน</button>
-          </form>
-        </div>
-      )}
+            <Form.Item>
+              <Button type="primary" htmlType="submit" block>ส่งเรื่องร้องเรียน</Button>
+            </Form.Item>
+          </Form>
+        </TabPane>
+      </Tabs>
     </div>
   );
 }
 
-export default Repair;
+export default Repair

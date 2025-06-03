@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   Button,
@@ -9,75 +9,129 @@ import {
   Upload,
   Input,
   Form,
+  Spin,
   DatePicker
 } from 'antd';
 import { EllipsisOutlined, UploadOutlined } from '@ant-design/icons';
 import moment from 'moment';
+import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
+import { db } from './firebase'; // ปรับ path ให้ถูกต้องตามโปรเจกต์คุณ
 import './CSS/Staff.css';
 
-const Staff = () => {
-  const [dataSource, setDataSource] = useState([
-    {
-      key: '1',
-      name: 'สุดหล่อ คนดี',
-      tel: '0912342134',
-      status: 'ยังไม่ได้มอบหมายงาน',
-      date: '02/11/2568',
-    },
-    {
-      key: '2',
-      name: 'สุดหล่อ คนดี',
-      tel: '0912342134',
-      status: 'มอบหมายงานแล้ว',
-      date: '02/11/2568',
-    },
-  ]);
 
+const Staff = () => {
+  const [dataSource, setDataSource] = useState([]);
   const [form] = Form.useForm();
   const [assignForm] = Form.useForm();
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [loading, setLoading] = useState(false);  // เพิ่ม loading state
 
+
+  // ดึงข้อมูล technician จาก Firestore
+  useEffect(() => {
+  const fetchTechnicians = async () => {
+          setLoading(true); // เริ่มโหลด
+
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('role', '==', 'technician'));
+      const querySnapshot = await getDocs(q);
+      const techniciansData = querySnapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        return {
+          key: docSnap.id,
+          pic: data.profileImage || '',
+          name: data.name || '-',
+          tel: data.phone || data.tel || '-',
+          status: data.status || 'ยังไม่ได้มอบหมายงาน',
+          date: data.date || moment().format('DD/MM/YYYY'),
+          ...data,
+        };
+      });
+      setDataSource(techniciansData);
+    } catch (error) {
+      console.error('โหลดข้อมูลช่างล้มเหลว:', error);
+      message.error('โหลดข้อมูลช่างล้มเหลว');
+    }
+  };
+  fetchTechnicians();
+}, []);
+
+
+  // เปิด modal มอบหมายงาน
   const showAssignModal = (record) => {
     setSelectedRecord(record);
+    assignForm.resetFields();
     setIsAssignModalOpen(true);
   };
 
-  const handleAssignSubmit = () => {
-    assignForm.validateFields().then((values) => {
-      setDataSource((prev) =>
-        prev.map((item) =>
+  // ยืนยันมอบหมายงาน
+  const handleAssignSubmit = async () => {
+    try {
+      const values = await assignForm.validateFields();
+      // อัพเดตสถานะใน Firestore
+      const userDocRef = doc(db, 'users', selectedRecord.key);
+      await updateDoc(userDocRef, {
+        status: 'มอบหมายงานแล้ว',
+        assignTask: {
+          title: values.title,
+          details: values.details,
+          duration: values.duration.format('DD/MM/YYYY'),
+          // ไฟล์ยังไม่อัพโหลดจริงในนี้นะ
+          file: values.file || [],
+        },
+      });
+      // อัพเดตใน UI
+      setDataSource(prev =>
+        prev.map(item =>
           item.key === selectedRecord.key
-            ? { ...item, status: 'มอบหมายงานแล้ว' }
+            ? { ...item, status: 'มอบหมายงานแล้ว', assignTask: values }
             : item
         )
       );
       setIsAssignModalOpen(false);
       message.success('มอบหมายงานสำเร็จ');
       assignForm.resetFields();
-    });
+    } catch (error) {
+      console.log('Error assign task:', error);
+    }
   };
 
+  // เปิด modal แก้ไข
   const showEditModal = (record) => {
     setSelectedRecord(record);
     form.setFieldsValue({
       name: record.name,
       tel: record.tel,
-      date: moment(record.date, 'DD/MM/YYYY'),
+      date: record.date ? moment(record.date, 'DD/MM/YYYY') : null,
+      profilePic: record.profilePic || [],
     });
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = () => {
-    form.validateFields().then((values) => {
+  // ยืนยันแก้ไข
+  const handleEditSubmit = async () => {
+    try {
+      const values = await form.validateFields();
       const updated = {
         ...values,
         date: values.date.format('DD/MM/YYYY'),
       };
 
-      setDataSource((prev) =>
-        prev.map((item) =>
+      // อัพเดต Firestore
+      const userDocRef = doc(db, 'users', selectedRecord.key);
+      await updateDoc(userDocRef, {
+        name: updated.name,
+        phone: updated.tel,
+        date: updated.date,
+        profilePic: updated.profilePic || [],
+      });
+
+      // อัพเดต UI
+      setDataSource(prev =>
+        prev.map(item =>
           item.key === selectedRecord.key
             ? { ...item, ...updated }
             : item
@@ -86,18 +140,30 @@ const Staff = () => {
       setIsEditModalOpen(false);
       message.success('แก้ไขข้อมูลสำเร็จ');
       form.resetFields();
-    });
+    } catch (error) {
+      console.log('Error edit staff:', error);
+    }
   };
 
+  // ลบข้อมูล
   const confirmDelete = (key) => {
     Modal.confirm({
       title: 'คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลนี้?',
       okText: 'ลบ',
       okType: 'danger',
       cancelText: 'ยกเลิก',
-      onOk: () => {
-        setDataSource((prev) => prev.filter((item) => item.key !== key));
-        message.success('ลบข้อมูลเรียบร้อยแล้ว');
+      onOk: async () => {
+        try {
+          // ลบข้อมูลจาก Firestore
+          // import { deleteDoc } from 'firebase/firestore' ถ้าจะลบจริง
+          // await deleteDoc(doc(db, 'users', key));
+          // สำหรับ demo ลบใน UI ก่อน
+          setDataSource(prev => prev.filter(item => item.key !== key));
+          message.success('ลบข้อมูลเรียบร้อยแล้ว');
+        } catch (error) {
+          console.log('Error deleting user:', error);
+          message.error('ลบข้อมูลไม่สำเร็จ');
+        }
       },
     });
   };
@@ -106,7 +172,23 @@ const Staff = () => {
     {
       title: 'ลำดับ',
       dataIndex: 'key',
+      render: (_, __, index) => index + 1,
     },
+    {
+    title: 'รูปโปรไฟล์',
+    dataIndex: 'pic',
+    key: 'pic',
+    render: (pic) =>
+      pic ? (
+        <img
+          src={pic}
+          alt="profile"
+          style={{ width: 40, height: 40, borderRadius: '50%' }}
+        />
+      ) : (
+        '-'
+      ),
+  },
     {
       title: 'ชื่อ',
       dataIndex: 'name',

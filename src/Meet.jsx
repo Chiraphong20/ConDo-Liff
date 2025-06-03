@@ -1,26 +1,116 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { db } from './firebase'; 
+import { collection, addDoc, doc, getDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore';
+import liff from '@line/liff'; 
 import './CSS/Meet.css';
 
 const Meet = () => {
+  const [userId, setUserId] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     room: '',
     time: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const rooms = ['A1', 'A2', 'A3', 'B1', 'B2', 'B3'];
+  const times = [
+    '08:30-10:30',
+    '11:30-13:30',
+    '14:00-16:00',
+    '16:30-18:30',
+  ];
+
+  useEffect(() => {
+    const initLiff = async () => {
+      try {
+        await liff.init({ liffId: '2007355122-K9ylwA67' }); 
+
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: window.location.href });
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        setUserId(profile.userId);
+
+        const userRef = doc(db, 'users', profile.userId);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setUserProfile(userSnap.data());
+          setFormData(prev => ({
+            ...prev,
+            name: userSnap.data().name || '',
+            phone: userSnap.data().phone || '',
+          }));
+        } else {
+          setMessage('ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนก่อน');
+        }
+      } catch (error) {
+        setMessage('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message);
+      }
+    };
+
+    initLiff();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData(prev => ({
+      ...prev,
       [name]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  // ฟังก์ชันเช็คว่าห้อง + ช่วงเวลาที่เลือกถูกจองแล้วหรือยัง
+  const checkDuplicateBooking = async () => {
+    const meetCollectionRef = collection(db, 'users', userId, 'meet');
+    const q = query(
+      meetCollectionRef,
+      where('room', '==', formData.room),
+      where('time', '==', formData.time)
+    );
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty; // true ถ้าพบข้อมูลซ้ำ
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // ทำการส่งข้อมูลไปที่ server หรือ Firebase
-    console.log(formData);
+    setMessage('');
+    setLoading(true);
+
+    if (!userId || !userProfile) {
+      setMessage('ไม่สามารถระบุผู้ใช้งานได้ กรุณาลงทะเบียนก่อน');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const isDuplicate = await checkDuplicateBooking();
+      if (isDuplicate) {
+        setMessage(`ห้อง ${formData.room} ในช่วงเวลา ${formData.time} ถูกจองแล้ว`);
+        setLoading(false);
+        return;
+      }
+
+      const meetCollectionRef = collection(db, 'users', userId, 'meet');
+
+      await addDoc(meetCollectionRef, {
+        ...formData,
+        createdAt: serverTimestamp(),
+      });
+
+      setMessage('บันทึกข้อมูลสำเร็จ');
+      setFormData({ name: '', phone: '', room: '', time: '' });
+    } catch (error) {
+      setMessage('เกิดข้อผิดพลาด: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -56,29 +146,40 @@ const Meet = () => {
           required
         >
           <option value="">-- กรุณาเลือก --</option>
-          <option value="ห้องประชุมใหญ่">ห้องประชุมใหญ่</option>
-          <option value="ห้องประชุมเล็ก">ห้องประชุมเล็ก</option>
+          {rooms.map(room => (
+            <option key={room} value={room}>{room}</option>
+          ))}
         </select>
 
-        <label htmlFor="time">เวลาที่ต้องการใช้</label>
-        <input
-          type="time"
+        <label htmlFor="time">ช่วงเวลาที่ต้องการใช้</label>
+        <select
           id="time"
           name="time"
           value={formData.time}
           onChange={handleChange}
           required
-        />
+        >
+          <option value="">-- กรุณาเลือกช่วงเวลา --</option>
+          {times.map(time => (
+            <option key={time} value={time}>{time}</option>
+          ))}
+        </select>
 
         <div className="submit">
-          <button type="button" className="buttoncancel">
+          <button
+            type="button"
+            className="buttoncancel"
+            onClick={() => setFormData({ name: '', phone: '', room: '', time: '' })}
+            disabled={loading}
+          >
             ยกเลิก
           </button>
-          <button type="submit" className="buttonOK">
-            ยืนยัน
+          <button type="submit" className="buttonOK" disabled={loading}>
+            {loading ? 'กำลังบันทึก...' : 'ยืนยัน'}
           </button>
         </div>
       </form>
+      {message && <p>{message}</p>}
     </div>
   );
 };

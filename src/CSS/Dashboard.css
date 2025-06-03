@@ -1,18 +1,11 @@
-/* ให้ Layout เต็มหน้าจอ */
-html, body, #root {
-  height: 100%;
+.dashboard-wrapper {
+  width: 100vw;
+  height: 100vh;
+  font-family: 'Kanit', sans-serif;
+  background-color: #ffffff;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
-  font-family: 'Kanit', sans-serif;
-  
-
-}
-
-/* Layout หลักของ Dashboard */
-.ant-layout {
-  height: 100vh;
-  min-height: 100vh;
-  width: 100vw;
 }
 
 /* Header ด้านบน */
@@ -32,14 +25,19 @@ html, body, #root {
   font-weight: bold;
 }
 
-.content {
+.content-dash {
   flex: 1;
   display: flex;
   flex-direction: column;
   padding: 0;
-  background: #F5F5F5;
+  background: #FFF;
   min-height: 93vh;
   width: 85vw;
   box-sizing: border-box;
   margin: 0;
+}
+.condoname {
+  font-size: 22px;
+  font-weight: bold;
+  color: black;
 }

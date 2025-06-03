@@ -5,16 +5,17 @@ import { db } from './firebase';
 import dayjs from 'dayjs';
 import { Input, DatePicker, Image } from 'antd';
 import liff from '@line/liff';
+import "./CSS/Machanic.css";
 
 const Machanic = () => {
-  const { userId, repairId } = useParams();
+  const { userId, taskId } = useParams(); // 🟡 ตอนนี้ใช้ taskId แทน repairId
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ date: null });
-  const [repairData, setRepairData] = useState(null);
+  const [taskData, setTaskData] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
-    const fetchRepairData = async () => {
+    const fetchTaskData = async () => {
       try {
         await liff.init({ liffId: '2007355122-xBNrkXmM' });
         if (!liff.isLoggedIn()) {
@@ -25,17 +26,18 @@ const Machanic = () => {
         const profile = await liff.getProfile();
         setCurrentUserId(profile.userId);
 
-        const docRef = doc(db, 'users', userId, 'repair', repairId);
+        const docRef = doc(db, 'users', userId, 'assignedTasks', taskId); // ✅ โหลดจาก assignedTasks
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          setRepairData({ id: docSnap.id, ...data });
+          setTaskData({ id: docSnap.id, ...data });
+
           if (data.mechanicDate) {
             setFormData({ date: data.mechanicDate });
           }
         } else {
-          alert('ไม่พบข้อมูลการซ่อม');
+          alert('ไม่พบข้อมูลงาน');
           navigate(-1);
         }
       } catch (error) {
@@ -44,10 +46,10 @@ const Machanic = () => {
       }
     };
 
-    if (userId && repairId) {
-      fetchRepairData();
+    if (userId && taskId) {
+      fetchTaskData();
     }
-  }, [userId, repairId, navigate]);
+  }, [userId, taskId, navigate]);
 
   const handleDateChange = (date, dateString) => {
     setFormData({ date: dateString });
@@ -62,8 +64,8 @@ const Machanic = () => {
     }
 
     try {
-      const repairRef = doc(db, 'users', userId, 'repair', repairId);
-      await updateDoc(repairRef, {
+      const taskRef = doc(db, 'users', userId, 'assignedTasks', taskId);
+      await updateDoc(taskRef, {
         mechanicDate: formData.date,
         status: 'in progress',
       });
@@ -80,33 +82,34 @@ const Machanic = () => {
     navigate(-1);
   };
 
-  if (!repairData) return <p>กำลังโหลด...</p>;
+  if (!taskData) return <p>กำลังโหลด...</p>;
+console.log('taskData:', taskData);
 
   return (
     <div className="container">
-      <h2>รายละเอียดการซ่อมแซม</h2>
-
+      <div className='mac'>
+      <h2>รายละเอียดคำสั่งซ่อม</h2>
       <form onSubmit={handleSubmit}>
         <label>เลขห้อง</label>
-        <Input value={repairData.room} disabled />
+        <Input value={taskData.room || taskData.userInfo?.room || ''} disabled />
 
         <label>ชื่อ-นามสกุล</label>
-        <Input value={repairData.name} disabled />
+        <Input value={taskData.name || taskData.userInfo?.name || ''} disabled />
 
         <label>หัวข้อ</label>
-        <Input value={repairData.topic} disabled />
+        <Input value={taskData.title || taskData.topic} disabled />
 
         <label>รายละเอียด</label>
-        <Input.TextArea value={repairData.details || repairData.detail} disabled rows={4} />
+        <Input.TextArea value={taskData.description || taskData.detail} disabled rows={4} />
 
         <label>เบอร์โทรศัพท์</label>
-        <Input value={repairData.phone} disabled />
+        <Input value={taskData.phone || taskData.userInfo?.phone || ''} disabled />
 
         <label>ภาพประกอบ</label>
         <div style={{ marginTop: '20px', marginBottom: '20px' }}>
           <Image
             width={200}
-            src={repairData.imageUrl || repairData.image}
+            src={taskData.media || taskData.image}
             alt="รูปภาพจากลูกบ้าน"
           />
         </div>
@@ -127,7 +130,10 @@ const Machanic = () => {
             บันทึกวันที่
           </button>
         </div>
+        
+        
       </form>
+    </div>
     </div>
   );
 };

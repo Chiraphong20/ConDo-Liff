@@ -3,24 +3,28 @@ import { useNavigate } from 'react-router-dom';
 import liff from '@line/liff';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
-
+import './CSS/Profile.css';
 function Profile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [linePictureUrl, setLinePictureUrl] = useState(null); // เก็บรูปโปรไฟล์
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' });
+        await liff.init({ liffId: '2007355122-aEAg2xnq' });
 
         if (!liff.isLoggedIn()) {
-          liff.login();
+          liff.login({ redirectUri: window.location.href });
           return;
         }
 
         const userProfile = await liff.getProfile();
         const userId = userProfile.userId;
+
+        // เก็บ URL รูปโปรไฟล์จาก LINE
+        setLinePictureUrl(userProfile.pictureUrl);
 
         const docRef = doc(db, 'users', userId);
         const docSnap = await getDoc(docRef);
@@ -28,7 +32,7 @@ function Profile() {
         if (docSnap.exists()) {
           setProfile({ ...docSnap.data(), uid: userId });
         } else {
-          navigate('/register'); // ไปหน้าลงทะเบียนถ้าไม่มีข้อมูล
+          navigate('/register');
           return;
         }
 
@@ -44,14 +48,35 @@ function Profile() {
 
   if (loading) return <div className="container">กำลังโหลดข้อมูล...</div>;
 
+  const accessToken = liff.getAccessToken();
+  if (!accessToken) {
+    alert('⚠️ กรุณาเปิดผ่านแอป LINE เท่านั้น');
+    return null;
+  }
+
   return (
-    <div className="container">
-      <h2>ข้อมูลส่วนตัว</h2>
-      <p>ชื่อ: {profile.name}</p>
-      <p>ห้อง: {profile.room}</p>
-      <p>อาคาร: {profile.building}</p>
-      <p>เบอร์โทร: {profile.phone}</p>
-      <p>UID: {profile.uid}</p>
+    <div className='wrapper-profile'>
+    <div className="container-profile">
+    <h2 style={{ color: 'white' }}>ข้อมูลส่วนตัว</h2>
+      {linePictureUrl && (
+        <img
+          src={linePictureUrl}
+          alt="รูปโปรไฟล์"
+          style={{ width: 120, height: 120, borderRadius: '50%', marginBottom: 20 }}
+        />
+      )}
+    <div className ="Personal">
+        <p style={{ textAlign: 'center' }}>{profile.name}</p>  {/* ตรงกลาง */}
+
+   <div className="profile-page ">
+    <p>ห้อง <br />{profile.room}</p>
+    <p>อาคาร<br /> {profile.building}</p>
+    <p>เบอร์โทร<br /> {profile.phone}</p>
+    <p>UID<br /> {profile.uid}</p>
+  </div>
+    </div>
+    </div>
+
     </div>
   );
 }
