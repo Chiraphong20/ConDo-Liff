@@ -5,7 +5,7 @@ import { db } from './firebase';
 import dayjs from 'dayjs';
 import { Input, DatePicker, Image } from 'antd';
 import liff from '@line/liff';
-import "./CSS/Machanic.css";
+import "./CSS/machanic.css";
 
 const Machanic = () => {
   const { userId, taskId } = useParams(); // 🟡 ตอนนี้ใช้ taskId แทน repairId
