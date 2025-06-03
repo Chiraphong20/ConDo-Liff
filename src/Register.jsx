@@ -112,7 +112,7 @@ const Register = () => {
       await setDoc(doc(db, 'users', userId), userData);
 
       // 🔥 ยิง API เพื่อเปลี่ยน Rich Menu
-      await fetch('https://your-vercel-backend.vercel.app/api/register', {
+      await fetch('https://condo-api-richmenu.vercel.app/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, role: values.role }),
