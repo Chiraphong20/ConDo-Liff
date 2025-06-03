@@ -7,7 +7,7 @@ import BillDetail from './BillDetail';
 import Register from './Register';
 import Status from './Status';
 import Dashboard from './Dashboard';
-import Machanic from './Machanic';
+import Machanic from './machanic';
 import Machanicstatus from './machanicstatus';
 import MachanicCase from './machaniccase';
 import MenuPage from './MenuPage';
