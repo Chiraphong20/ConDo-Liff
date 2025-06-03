@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 import liff from '@line/liff';
-import "./CSS/MachanicCase.css";
+import "./CSS/machaniccase.css";
 
 const { Title, Text } = Typography;
 
