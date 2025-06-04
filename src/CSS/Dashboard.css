@@ -8,7 +8,6 @@
   padding: 0;
 }
 
-/* Header ด้านบน */
 .custom-header {
   background: #fff;
   padding: 0;
@@ -16,7 +15,6 @@
   align-items: center;
 }
 
-/* ชื่อ Title ด้านบน */
 .custom-header-title {
   display: flex;
   flex-direction: row;
@@ -40,4 +38,21 @@
   font-size: 22px;
   font-weight: bold;
   color: black;
+
+}
+.custom-menu-item {
+  padding-left: 0; /* ลบระยะห่างซ้าย */
+}
+
+.custom-menu-item {
+  padding-left: 0; /* ไม่มี padding ซ้าย */
+}
+
+.menu-link {
+  display: block;
+  width: 100%;
+  color: white;
+  text-align: left; /* จัดให้ข้อความเริ่มจากซ้าย */
+  padding-left: 12px; /* เว้นระยะซ้ายให้ห่างจาก icon */
+  text-decoration: none;
 }

@@ -176,3 +176,7 @@
   display: inline-block;
   margin-right: 5px;
 }
+.ant-form-item-label > label {
+  color: black !important;        /* สีข้อความ */
+  font-family: Arial, sans-serif; /* ฟอนต์ถ้าต้องการ */
+}

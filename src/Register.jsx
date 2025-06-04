@@ -26,11 +26,9 @@ const Register = () => {
   const [role, setRole] = useState('');
   const navigate = useNavigate();
 
-  // 🔁 ดึงภาพแล้วแปลง Base64
   const fetchImageAsBase64 = async (url) => {
     const response = await fetch(url);
     const blob = await response.blob();
-
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result);
@@ -82,72 +80,86 @@ const Register = () => {
   }, []);
 
   const handleSubmit = async (values) => {
-    if (!userId) {
-      message.error('⚠️ ไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE');
-      return;
+  if (!userId) {
+    message.error('⚠️ ไม่สามารถระบุผู้ใช้ได้ กรุณาเข้าใหม่ผ่านแอป LINE');
+    return;
+  }
+
+  if (values.role === 'technician' && (!values.keycode || values.keycode.trim() === '')) {
+    message.error('กรุณากรอกรหัสช่าง');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    // เตรียมข้อมูลสำหรับบันทึกใน Firestore
+    const userData = {
+      name: values.fullname,
+      phone: values.phone,
+      email: values.email,
+      role: values.role,
+      displayName,
+      profileImage: values.profileImage || '',
+    };
+
+    if (values.role !== 'technician') {
+      userData.room = values.room;
+      userData.building = values.building;
     }
 
-    if (values.role === 'technician' && (!values.keycode || values.keycode.trim() === '')) {
-      message.error('กรุณากรอกรหัสช่าง');
-      return;
-    }
+    // บันทึกข้อมูลผู้ใช้ใน Firestore
+    await setDoc(doc(db, 'users', userId), userData);
+    message.success('✅ ลงทะเบียนสำเร็จ');
 
-    setIsSubmitting(true);
-
+    // เรียก API backend เพื่อเปลี่ยน Rich Menu
     try {
-      const userData = {
-        name: values.fullname,
-        phone: values.phone,
-        email: values.email,
-        role: values.role,
-        displayName,
-        profileImage: values.profileImage || '',
-      };
-
-      if (values.role !== 'technician') {
-        userData.room = values.room;
-        userData.building = values.building;
-      }
-
-      await setDoc(doc(db, 'users', userId), userData);
-
-      // 🔥 ยิง API เพื่อเปลี่ยน Rich Menu
-      await fetch('https://condo-api-richmenu.vercel.app/api/register', {
+      const response = await fetch('https://condo-api-richmenu-production.up.railway.app/api/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, role: values.role }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          role: values.role,
+        }),
       });
 
-      message.success('✅ ลงทะเบียนสำเร็จ');
-
-      let welcomeMessage = '';
-      switch (values.role) {
-        case 'resident':
-          welcomeMessage = 'ยินดีต้อนรับลูกบ้าน';
-          break;
-        case 'juristic':
-          welcomeMessage = 'สวัสดีนิติบุคคล';
-          break;
-        case 'technician':
-          welcomeMessage = 'เข้าสู่ระบบช่าง';
-          break;
-        default:
-          welcomeMessage = 'ลงทะเบียนเรียบร้อย';
-      }
-
-      try {
-        await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
-      } catch (err) {
-        console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
-      }
+      const data = await response.json();
+      console.log('✅ RichMenu API response:', data);
     } catch (err) {
-      message.error('❌ เกิดข้อผิดพลาด: ' + err.message);
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
+      console.error('❌ ไม่สามารถเชื่อมต่อ backend เพื่อกำหนด Rich Menu:', err);
     }
-  };
 
+    // ส่งข้อความต้อนรับผ่าน LIFF
+    let welcomeMessage = '';
+    switch (values.role) {
+      case 'resident':
+        welcomeMessage = 'ยินดีต้อนรับลูกบ้าน';
+        break;
+      case 'juristic':
+        welcomeMessage = 'สวัสดีนิติบุคคล';
+        break;
+      case 'technician':
+        welcomeMessage = 'เข้าสู่ระบบช่าง';
+        break;
+      default:
+        welcomeMessage = 'ลงทะเบียนเรียบร้อย';
+    }
+
+    try {
+      await liff.sendMessages([{ type: 'text', text: welcomeMessage }]);
+    } catch (err) {
+      console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
+    }
+
+  } catch (err) {
+    message.error('❌ เกิดข้อผิดพลาด: ' + err.message);
+    console.error(err);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const handleCancel = () => {
     form.resetFields();
     setRole('');
@@ -184,7 +196,6 @@ const Register = () => {
         layout="vertical"
         onFinish={handleSubmit}
         initialValues={{ role: '' }}
-        style={{ color: 'white' }}
       >
         <Form.Item name="profileImage" hidden>
           <Input />
@@ -224,7 +235,6 @@ const Register = () => {
         >
           <Select
             disabled={isSubmitting}
-            className="rounded-input"
             onChange={onRoleChange}
             placeholder="เลือกบทบาท"
           >

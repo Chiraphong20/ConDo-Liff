@@ -49,7 +49,9 @@ function Dashboard() {
             collapsible
             collapsed={collapsed}
             width={220}
-            style={{ overflowY: 'auto' }}
+            style={{ overflowY: 'auto'  
+              
+            }}
           >
             <Menu
               theme="dark"
@@ -57,30 +59,38 @@ function Dashboard() {
               defaultSelectedKeys={['CondoRoom']}
               style={{ height: '100%', borderRight: 0 }}
             >
-              <Menu.Item key="CondoRoom" icon={<HomeOutlined />}>
-                <Link to="/dashboard/condo-room">ข้อมูลห้อง</Link>
+              <Menu.Item key="CondoRoom" icon={<HomeOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/condo-room" className="menu-link">ข้อมูลห้อง</Link>
               </Menu.Item>
-              <Menu.Item key="CondoPayment" icon={<DollarOutlined />}>
-                <Link to="/dashboard/payment">คนค้างชำระ</Link>
+
+              <Menu.Item key="CondoPayment" icon={<DollarOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/payment" className="menu-link">ค้างชำระ</Link>
               </Menu.Item>
-              <Menu.Item key="CondoReport" icon={<ToolOutlined />}>
-                <Link to="/dashboard/report">คำร้องเรียน / แจ้งซ่อม</Link>
+
+              <Menu.Item key="CondoReport" icon={<ToolOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/report" className="menu-link">คำร้องเรียน / แจ้งซ่อม</Link>
               </Menu.Item>
-              <Menu.Item key="CondoStatus" icon={<NotificationOutlined />}>
-                <Link to="/dashboard/condostatus">ติดตามสถานนะ</Link>
+
+              <Menu.Item key="CondoStatus" icon={<NotificationOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/condostatus" className="menu-link">ติดตามสถานนะ</Link>
               </Menu.Item>
-              <Menu.Item key="Announcement" icon={<NotificationOutlined />}>
-                <Link to="/dashboard/announcement">ประกาศ</Link>
+
+              <Menu.Item key="Announcement" icon={<NotificationOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/announcement" className="menu-link">ประกาศ</Link>
               </Menu.Item>
-              <Menu.Item key="Staff" icon={<TeamOutlined />}>
-                <Link to="/dashboard/staff">จัดการพนักงาน</Link>
+
+              <Menu.Item key="Staff" icon={<TeamOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/staff" className="menu-link">จัดการพนักงาน</Link>
               </Menu.Item>
-              <Menu.Item key="CondoMeet" icon={<CalendarOutlined />}>
-                <Link to="/dashboard/meet">ตรวจสอบการจอง</Link>
+
+              <Menu.Item key="CondoMeet" icon={<CalendarOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/meet" className="menu-link">ตรวจสอบการจอง</Link>
               </Menu.Item>
-                  <Menu.Item key="Income" icon={<CalendarOutlined />}>
-                <Link to="/dashboard/income">ตรวจสอบการจอง</Link>
+
+              <Menu.Item key="Income" icon={<CalendarOutlined />} className="custom-menu-item">
+                <Link to="/dashboard/income" className="menu-link">แจ้งยอดรายรับ-จ่าย</Link>
               </Menu.Item>
+
             </Menu>
           </Sider>
 

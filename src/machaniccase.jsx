@@ -16,62 +16,71 @@ const MachanicCase = () => {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ เรียก LIFF เพื่อดึง userId ของช่าง
-  useEffect(() => {
-    const initLiff = async () => {
-      try {
-        await liff.init({ liffId: '2007355122-N49L86B2' });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-        } else {
-          const profile = await liff.getProfile();
-          setUserId(profile.userId);
-        }
-      } catch (error) {
-        console.error('❌ LIFF Error:', error);
+useEffect(() => {
+  const initLiff = async () => {
+    try {
+      await liff.init({ liffId: '2007355122-xBNrkXmM' });
+      console.log("LIFF init success");
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      } else {
+        const profile = await liff.getProfile();
+        console.log("👤 LIFF profile:", profile);
+        const uid = profile.userId;
+        setUserId(uid); // ยังเก็บไว้เผื่อใช้ที่อื่น
+        fetchAssignedTasks(uid); // เรียกใช้ตรงนี้เลย
       }
-    };
-    initLiff();
-  }, []);
-
-  // ✅ โหลดงานจาก assignedTasks
-  useEffect(() => {
-    const fetchAssignedTasks = async () => {
-      if (!userId) return;
-      setLoading(true);
-
-      try {
-        const assignedRef = collection(db, 'users', userId, 'assignedTasks');
-        const assignedSnap = await getDocs(assignedRef);
-
-        const assignedList = assignedSnap.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            ...(data.userInfo || {}),
-            image: data.media || '',
-            topic: data.title || '',
-            detail: data.description || '',
-            date: data.createdAt?.toDate?.().toLocaleDateString?.() || '-',
-            status: data.status || 'pending',
-          };
-        });
-
-        const orders = assignedList.filter(r => r.status === 'กำลังดำเนินการ' || !r.status || r.status === 'pending');
-        const status = assignedList.filter(r => r.status && r.status !== 'pending' && r.status !== 'กำลังดำเนินการ');
-
-        setRepairOrders(orders);
-        setRepairStatus(status);
-      } catch (error) {
-        console.error('❌ ดึงข้อมูลไม่สำเร็จ:', error);
-      }
-
+    } catch (error) {
+      console.error('LIFF Error:', error);
       setLoading(false);
-    };
+    }
+  };
 
-    fetchAssignedTasks();
-  }, [userId]);
+  const fetchAssignedTasks = async (uid) => {
+    if (!uid) {
+      console.warn('⚠️ userId is null');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const assignedRef = collection(db, 'users', uid, 'assignedTasks');
+      const assignedSnap = await getDocs(assignedRef);
+
+      console.log('📘 ข้อมูลเคส:', assignedSnap.docs);
+
+      const assignedList = assignedSnap.docs.map(doc => {
+        const data = doc.data();
+        console.log(data);
+        return {
+          id: doc.id,
+          ...data,
+          ...(data.userInfo || {}),
+          image: data.media || '',
+          topic: data.title || '',
+          detail: data.description || '',
+          date: data.createdAt?.toDate?.().toLocaleDateString?.() || '-',
+          status: data.status || 'pending',
+        };
+      });
+
+      const orders = assignedList.filter(r => r.status === 'กำลังดำเนินการ' || !r.status || r.status === 'pending');
+      const status = assignedList.filter(r => r.status && r.status !== 'pending' && r.status !== 'กำลังดำเนินการ');
+
+      setRepairOrders(orders);
+      setRepairStatus(status);
+    } catch (error) {
+      console.error('❌ ดึงข้อมูลไม่สำเร็จ:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  initLiff();
+}, []);
+
 
   const handleCardClick = (item, tab) => {
     navigate(`/machanic/${userId}/${item.id}`);
@@ -104,9 +113,10 @@ const MachanicCase = () => {
       ]}
     />
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 50 }}>
-          <Spin tip="กำลังโหลดงาน..." size="large" />
-        </div>
+          <Spin spinning={loading} tip="กำลังโหลดงาน..." size="large">
+      {/* ทั้งหน้าจอที่ต้องโหลด */}
+      <div style={{ minHeight: '80vh' }} />
+    </Spin>
       ) : currentItems.length === 0 ? (
         <p style={{ textAlign: 'center' }}>ยังไม่มีงาน</p>
       ) : (
@@ -127,7 +137,7 @@ const MachanicCase = () => {
             <Row gutter={16} style={{ alignItems: 'center' }}>
               <Col span={8}>
                 <img
-                  src={item.image || 'https://via.placeholder.com/140'}
+                  src={item.image}
                   alt={item.topic}
                   style={{
                     width: '100%',
