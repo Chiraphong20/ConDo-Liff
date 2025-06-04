@@ -19,7 +19,7 @@ const MachanicCase = () => {
 useEffect(() => {
   const initLiff = async () => {
     try {
-      await liff.init({ liffId: '2007355122-xBNrkXmM' });
+      await liff.init({ liffId: '2007355122-A26QKmoZ' });
       console.log("LIFF init success");
 
       if (!liff.isLoggedIn()) {
