@@ -11,7 +11,7 @@ import Dashboard from './Dashboard';
 import Machanic from './machanic';
 import Machanicstatus from './machanicstatus';
 import MachanicCase from './machaniccase';
-import Meet from './meet';
+import Meet from './Meet';
 import FinancePage from './FinancePage';
 import PaymentMethod from './PaymentMethod';
 import AdminLogin from './AdminLogin';
