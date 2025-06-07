@@ -24,3 +24,6 @@ body {
 .ant-select-item-option-content {
   color: rgb(0, 0, 0) !important;
 }
+.title-register .ant-typography {
+  color:white !important;
+}

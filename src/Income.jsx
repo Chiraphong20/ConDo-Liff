@@ -35,6 +35,11 @@ const Income = () => {
   const [form] = Form.useForm();
   const [editingRecord, setEditingRecord] = useState(null);
 
+  // สำหรับรูป preview
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const [previewTitle, setPreviewTitle] = useState('');
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -101,6 +106,16 @@ const Income = () => {
     });
   };
 
+  const handlePreview = async (file) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj || file);
+    }
+
+    setPreviewImage(file.url || file.preview);
+    setPreviewVisible(true);
+    setPreviewTitle(file.name || 'รูปภาพ');
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -163,7 +178,12 @@ const Income = () => {
           <img
             src={imgList[0]}
             alt="uploaded"
-            style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }}
+            style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8, cursor: 'pointer' }}
+            onClick={() => {
+              setPreviewImage(imgList[0]);
+              setPreviewTitle('รูปภาพ');
+              setPreviewVisible(true);
+            }}
           />
         ) : (
           '-'
@@ -248,7 +268,11 @@ const Income = () => {
             valuePropName="fileList"
             getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
           >
-            <Upload beforeUpload={() => false} listType="picture-card">
+            <Upload
+              beforeUpload={() => false}
+              listType="picture-card"
+              onPreview={handlePreview}
+            >
               <div>
                 <UploadOutlined />
                 <div>อัพโหลด</div>
@@ -256,6 +280,15 @@ const Income = () => {
             </Upload>
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        visible={previewVisible}
+        title={previewTitle}
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+      >
+        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
       </Modal>
     </div>
   );

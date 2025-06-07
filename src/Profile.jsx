@@ -55,9 +55,9 @@ function Profile() {
   }
 
   return (
-    <div className='wrapper-profile'>
+  <div className='wrapper-profile'>
     <div className="container-profile">
-    <h2 style={{ color: 'white' }}>ข้อมูลส่วนตัว</h2>
+      <h2 style={{ color: 'white' }}>ข้อมูลส่วนตัว</h2>
       {linePictureUrl && (
         <img
           src={linePictureUrl}
@@ -65,20 +65,24 @@ function Profile() {
           style={{ width: 120, height: 120, borderRadius: '50%', marginBottom: 20 }}
         />
       )}
-    <div className ="Personal">
-        <p style={{ textAlign: 'center' }}>{profile.name}</p>  {/* ตรงกลาง */}
+      <div className="Personal">
+        <p style={{ textAlign: 'center' }}>{profile.name}</p>
 
-   <div className="profile-page ">
-    <p>ห้อง <br />{profile.room}</p>
-    <p>อาคาร<br /> {profile.building}</p>
-    <p>เบอร์โทร<br /> {profile.phone}</p>
-    <p>UID<br /> {profile.uid}</p>
+        <div className="profile-page">
+          {profile.role !== 'technician' && (
+            <>
+              <p>ห้อง <br />{profile.room}</p>
+              <p>อาคาร<br /> {profile.building}</p>
+            </>
+          )}
+          <p>เบอร์โทร<br /> {profile.phone}</p>
+          <p>อีเมลล์<br /> {profile.email}</p>
+        </div>
+      </div>
+    </div>
   </div>
-    </div>
-    </div>
+);
 
-    </div>
-  );
 }
 
 export default Profile;

@@ -33,3 +33,35 @@
   transform: scale(1.05);
   background-color: #357ab8;
 }
+.menu-sidebar {
+  display: flex;
+  flex-direction: row; /* ✅ เรียงแนวนอน */
+  justify-content: center;
+  gap: 20px; /* ✅ ช่องว่างระหว่างปุ่ม */
+  padding: 20px;
+}
+
+.menu-card {
+  background-color: #5588E7;
+  color: white;
+  padding: 20px;
+  width: 120px;
+  height: 100px;
+  border: 2px solid #5c9ded;
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.menu-card:hover {
+  background-color: #5c9ded;
+  color: white;
+  transform: scale(1.05);
+}

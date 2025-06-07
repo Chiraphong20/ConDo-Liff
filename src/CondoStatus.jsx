@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Input, Avatar, Button, Spin } from 'antd';
+import { Modal, Input, Avatar, Button, Spin, Tabs } from 'antd';
 import { InfoCircleOutlined } from '@ant-design/icons';
 import { collectionGroup, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase';
@@ -75,6 +75,34 @@ const CondoStatus = () => {
     setModalVisible(false);
   };
 
+  const renderMedia = (media, mediaType) => {
+    if (!media) return null;
+    const mediaArray = Array.isArray(media) ? media : [media];
+    return (
+      <div>
+        <p><b>มีเดีย:</b></p>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {mediaArray.map((m, i) => (
+            mediaType?.startsWith('video') ? (
+              <video key={i} width="300" height="200" controls style={{ borderRadius: 8 }}>
+                <source src={m} type={mediaType} />
+              </video>
+            ) : (
+              <img
+                key={i}
+                src={m}
+                alt={`media-${i}`}
+                width={200}
+                height={200}
+                style={{ borderRadius: 8, objectFit: 'cover' }}
+              />
+            )
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="content-status">
       <div className="sectionheader">
@@ -85,43 +113,81 @@ const CondoStatus = () => {
         <p>ติดตามสถานะ</p>
       </div>
 
-      <div className="room-section">
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 20 }}>
-            <Spin tip="กำลังโหลด..." size="large" />
-          </div>
-        ) : tasks.length === 0 ? (
-          <p>ไม่มีงานที่ได้รับมอบหมาย</p>
-        ) : (
-          tasks.map((task, index) => (
-            <div key={index} className="room-card" onClick={() => handleCardClick(task)}>
-              <div className="status-label">
-                <span className="red-dot" />
-                <span className="status-text">{task.status || 'กำลังดำเนินการ'}</span>
-              </div>
-              <div
-                className="info-icon"
-                style={{ position: 'absolute', top: 10, right: 10, cursor: 'pointer' }}
-              >
-                <InfoCircleOutlined style={{ fontSize: 20, color: '#1890ff' }} />
-              </div>
-              <img
-                src={
+      <Tabs defaultActiveKey="inProgress">
+        <Tabs.TabPane tab="กำลังดำเนินการ" key="inProgress">
+          <div className="room-section">
+            {loading ? (
+              <Spin tip="กำลังโหลด..." size="large" />
+            ) : tasks.filter(task =>
+              (task.status === 'ยังไม่ได้ดำเนินการ' || task.status === 'กำลังดำเนินการ') &&
+              task.type === 'แจ้งซ่อม'
+            ).length === 0 ? (
+              <p>ไม่มีงานที่กำลังดำเนินการ</p>
+            ) : (
+              tasks
+                .filter(task =>
+                  (task.status === 'ยังไม่ได้ดำเนินการ' || task.status === 'กำลังดำเนินการ') &&
                   task.type === 'แจ้งซ่อม'
-                    ? 'https://cdn-icons-png.flaticon.com/512/6001/6001179.png'
-                    : 'https://cdn-icons-png.flaticon.com/512/1828/1828911.png'
-                }
-                alt="icon"
-                style={{ width: 60, margin: '10px 0' }}
-              />
-              <div><b>{task.userInfo?.name || '-'}</b></div>
-              <div><b>เบอร์ : {task.userInfo?.phone || '-'}</b></div>
-              <div><b>ห้อง {task.userInfo?.room || '-'}</b></div>
-              <div><b>{task.title || '-'}</b></div>
-            </div>
-          ))
-        )}
-      </div>
+                )
+                .map((task, index) => (
+                  <div key={index} className="room-card" onClick={() => handleCardClick(task)}>
+                    <div className="status-label">
+                      <span className="red-dot" />
+                      <span className="status-text">{task.status || 'กำลังดำเนินการ'}</span>
+                    </div>
+                    <InfoCircleOutlined className="info-icon" style={{ fontSize: 20, color: '#1890ff' }} />
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
+                      alt="icon"
+                      style={{ width: 60, margin: '10px 0' }}
+                    />
+                    <div><b>{task.userInfo?.name || '-'}</b></div>
+                    <div><b>เบอร์ : {task.userInfo?.phone || '-'}</b></div>
+                    <div><b>ห้อง {task.userInfo?.room || '-'}</b></div>
+                    <div><b>{task.title || '-'}</b></div>
+                  </div>
+                ))
+            )}
+          </div>
+        </Tabs.TabPane>
+
+        <Tabs.TabPane tab="ประวัติซ่อมเสร็จสิ้น" key="completed">
+          <div className="room-section">
+            {loading ? (
+              <Spin tip="กำลังโหลด..." size="large" />
+            ) : tasks.filter(task =>
+              ['เสร็จสิ้น', 'ซ่อมแซมเสร็จสิ้น'].includes(task.status) &&
+              task.type === 'แจ้งซ่อม'
+            ).length === 0 ? (
+              <p>ยังไม่มีงานแจ้งซ่อมที่เสร็จสิ้น</p>
+            ) : (
+              tasks
+                .filter(task =>
+                  ['เสร็จสิ้น', 'ซ่อมแซมเสร็จสิ้น'].includes(task.status) &&
+                  task.type === 'แจ้งซ่อม'
+                )
+                .map((task, index) => (
+                  <div key={index} className="room-card" onClick={() => handleCardClick(task)}>
+                    <div className="status-label-paid">
+                      <span className="green-dot" />
+                      <span className="status-text">{task.status || 'ซ่อมแซมเสร็จสิ้น'}</span>
+                    </div>
+                    <InfoCircleOutlined className="info-icon" style={{ fontSize: 20, color: '#1890ff' }} />
+                    <img
+                      src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
+                      alt="icon"
+                      style={{ width: 60, margin: '10px 0' }}
+                    />
+                    <div><b>{task.userInfo?.name || '-'}</b></div>
+                    <div><b>เบอร์ : {task.userInfo?.phone || '-'}</b></div>
+                    <div><b>ห้อง {task.userInfo?.room || '-'}</b></div>
+                    <div><b>{task.title || '-'}</b></div>
+                  </div>
+                ))
+            )}
+          </div>
+        </Tabs.TabPane>
+      </Tabs>
 
       <Modal
         title="รายละเอียดงาน"
@@ -137,29 +203,10 @@ const CondoStatus = () => {
             <p><b>ข้อมูลเพิ่มเติม:</b></p>
             <p>{selectedTask.description || '-'}</p>
 
-            {selectedTask.media && (
-              <>
-                <p><b>มีเดีย:</b></p>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  {selectedTask.mediaType?.startsWith('video') ? (
-                    <video width="300" height="200" controls style={{ borderRadius: 8 }}>
-                      <source src={selectedTask.media} type={selectedTask.mediaType} />
-                    </video>
-                  ) : (
-                    <img
-                      src={selectedTask.media}
-                      alt="media"
-                      width={200}
-                      height={200}
-                      style={{ borderRadius: 8, objectFit: 'cover' }}
-                    />
-                  )}
-                </div>
-              </>
-            )}
+            {renderMedia(selectedTask.media, selectedTask.mediaType)}
 
             <p><b>เจ้าหน้าที่:</b></p>
-            <div style={{ display: 'flex', gap: '20px' }}>
+            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
               {selectedTask.officers?.map((officer, i) => (
                 <div key={i} style={{ textAlign: 'center' }}>
                   <Avatar size={48} src={getBase64Image(officer.profileImage)} />

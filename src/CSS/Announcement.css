@@ -11,6 +11,9 @@ html, body {
   box-sizing: border-box;
 
 }
+.ant-table td {
+  padding: 16px 15px !important; /* <-- ตัวอย่างที่ทำให้มันห่าง */
+}
 
 .header {
   display: flex;

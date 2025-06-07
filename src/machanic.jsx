@@ -8,7 +8,7 @@ import liff from '@line/liff';
 import "./CSS/machanic.css";
 
 const Machanic = () => {
-  const { userId, taskId } = useParams(); // 🟡 ตอนนี้ใช้ taskId แทน repairId
+  const { userId, taskId } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ date: null });
   const [taskData, setTaskData] = useState(null);
@@ -17,7 +17,7 @@ const Machanic = () => {
   useEffect(() => {
     const fetchTaskData = async () => {
       try {
-        await liff.init({ liffId: '2007355122-xBNrkXmM' });
+        await liff.init({ liffId: '2007355122-A26QKmoZ' });
         if (!liff.isLoggedIn()) {
           liff.login();
           return;
@@ -26,7 +26,7 @@ const Machanic = () => {
         const profile = await liff.getProfile();
         setCurrentUserId(profile.userId);
 
-        const docRef = doc(db, 'users', userId, 'assignedTasks', taskId); // ✅ โหลดจาก assignedTasks
+        const docRef = doc(db, 'users', userId, 'assignedTasks', taskId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -67,11 +67,11 @@ const Machanic = () => {
       const taskRef = doc(db, 'users', userId, 'assignedTasks', taskId);
       await updateDoc(taskRef, {
         mechanicDate: formData.date,
-        status: 'in progress',
+        status: 'กำลังดำเนินการ', // ✅ อัปเดตสถานะทันทีเมื่อรับงาน
       });
 
       alert('บันทึกวันที่สำเร็จ');
-      navigate('/dashboard');
+      navigate('/machaniccase');
     } catch (error) {
       console.error('Error updating document:', error);
       alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
@@ -83,57 +83,54 @@ const Machanic = () => {
   };
 
   if (!taskData) return <p>กำลังโหลด...</p>;
-console.log('taskData:', taskData);
 
   return (
-    <div className="container">
-      <div className='mac'>
-      <h2>รายละเอียดคำสั่งซ่อม</h2>
-      <form onSubmit={handleSubmit}>
-        <label>เลขห้อง</label>
-        <Input value={taskData.room || taskData.userInfo?.room || ''} disabled />
+    <div className="container-machanic">
+      <div className="mac">
+        <h2>รายละเอียดคำสั่งซ่อม</h2>
+        <form onSubmit={handleSubmit}>
+          <label>เลขห้อง</label>
+          <Input value={taskData.room || taskData.userInfo?.room || ''} disabled />
 
-        <label>ชื่อ-นามสกุล</label>
-        <Input value={taskData.name || taskData.userInfo?.name || ''} disabled />
+          <label>ชื่อ-นามสกุล</label>
+          <Input value={taskData.name || taskData.userInfo?.name || ''} disabled />
 
-        <label>หัวข้อ</label>
-        <Input value={taskData.title || taskData.topic} disabled />
+          <label>หัวข้อ</label>
+          <Input value={taskData.title || taskData.topic || ''} disabled />
 
-        <label>รายละเอียด</label>
-        <Input.TextArea value={taskData.description || taskData.detail} disabled rows={4} />
+          <label>รายละเอียด</label>
+          <Input.TextArea value={taskData.description || taskData.detail || ''} disabled rows={4} />
 
-        <label>เบอร์โทรศัพท์</label>
-        <Input value={taskData.phone || taskData.userInfo?.phone || ''} disabled />
+          <label>เบอร์โทรศัพท์</label>
+          <Input value={taskData.phone || taskData.userInfo?.phone || ''} disabled />
 
-        <label>ภาพประกอบ</label>
-        <div style={{ marginTop: '20px', marginBottom: '20px' }}>
-          <Image
-            width={200}
-            src={taskData.media || taskData.image}
-            alt="รูปภาพจากลูกบ้าน"
+          <label>ภาพประกอบ</label>
+          <div style={{ marginTop: '20px', marginBottom: '20px' }}>
+            <Image
+              width={200}
+              src={taskData.media || taskData.image}
+              alt="รูปภาพจากลูกบ้าน"
+            />
+          </div>
+
+          <label>วันที่จะเข้าซ่อม</label>
+          <DatePicker
+            style={{ width: '100%' }}
+            onChange={handleDateChange}
+            format="YYYY-MM-DD"
+            value={formData.date ? dayjs(formData.date) : null}
           />
-        </div>
 
-        <label>วันที่จะเข้าซ่อม</label>
-        <DatePicker
-          style={{ width: '100%' }}
-          onChange={handleDateChange}
-          format="YYYY-MM-DD"
-          value={formData.date ? dayjs(formData.date) : null}
-        />
-
-        <div className="submit">
-          <button type="button" className="buttoncancel" onClick={handleCancel}>
-            ยกเลิก
-          </button>
-          <button type="submit" className="buttonOK">
-            บันทึกวันที่
-          </button>
-        </div>
-        
-        
-      </form>
-    </div>
+          <div className="submit">
+            <button type="button" className="buttoncancel" onClick={handleCancel}>
+              ยกเลิก
+            </button>
+            <button type="submit" className="buttonOK">
+              บันทึกวันที่
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

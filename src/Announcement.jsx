@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   Button,
@@ -7,24 +7,28 @@ import {
   Input,
   DatePicker,
   Upload,
+  message,
+  Spin,
 } from 'antd';
-import {
-  PlusOutlined,
-  LoadingOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import moment from 'moment';
+
+import {
+  collection,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from 'firebase/firestore';
+import { db } from './firebase';
+
 import './CSS/Announcement.css';
 
 const Announcement = () => {
-  const [announcements, setAnnouncements] = useState([
-    {
-      key: '1',
-      title: 'ตัดไฟตอนเช้า',
-      detail: 'ตัดไฟเวลา......',
-      date: '15/เมษายน/2568',
-      image: null,
-    },
-  ]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -32,6 +36,26 @@ const Announcement = () => {
 
   const [imageUrl, setImageUrl] = useState(null);
   const [loadingImage, setLoadingImage] = useState(false);
+
+  // โหลดประกาศจาก Firestore
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      setLoadingAnnouncements(true);
+      try {
+        const snapshot = await getDocs(collection(db, 'announcements'));
+        const list = snapshot.docs.map(doc => ({
+          key: doc.id,
+          ...doc.data(),
+        }));
+        setAnnouncements(list);
+      } catch (error) {
+        message.error('โหลดประกาศล้มเหลว');
+        console.error('Error fetching announcements:', error);
+      }
+      setLoadingAnnouncements(false);
+    };
+    fetchAnnouncements();
+  }, []);
 
   const showModal = (record = null) => {
     setEditing(record);
@@ -49,60 +73,135 @@ const Announcement = () => {
     setIsModalOpen(true);
   };
 
-  const handleOk = () => {
-    form.validateFields().then((values) => {
+  // แปลงไฟล์เป็น Base64
+  const getBase64 = (file, callback) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => callback(reader.result);
+    reader.onerror = error => {
+      message.error('แปลงรูปภาพล้มเหลว');
+      console.error(error);
+      setLoadingImage(false);
+    };
+  };
+
+  // ก่อนอัปโหลด จะจับไฟล์แปลงเป็น Base64 และเก็บไว้ใน state
+  const beforeUpload = (file) => {
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      message.error('คุณสามารถอัปโหลดไฟล์รูปภาพเท่านั้น!');
+      return Upload.LIST_IGNORE; // ป้องกันไม่ให้อัปโหลดไฟล์อื่น
+    }
+    setLoadingImage(true);
+    getBase64(file, (base64) => {
+      setImageUrl(base64);
+      setLoadingImage(false);
+    });
+    return false; // หยุดการอัปโหลดไฟล์จริงของ Upload
+  };
+
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
       const formattedDate = values.date.format('DD/MMMM/YYYY');
+
       if (editing) {
+        // อัปเดตประกาศเดิม
+        await updateDoc(doc(db, 'announcements', editing.key), {
+          title: values.title,
+          detail: values.detail,
+          date: formattedDate,
+          image: imageUrl,
+          updatedAt: serverTimestamp(),
+        });
+
         setAnnouncements((prev) =>
           prev.map((item) =>
             item.key === editing.key
-              ? {
-                  ...item,
-                  ...values,
-                  date: formattedDate,
-                  image: imageUrl,
-                }
+              ? { ...item, title: values.title, detail: values.detail, date: formattedDate, image: imageUrl }
               : item
           )
         );
+        message.success('แก้ไขประกาศเรียบร้อย');
       } else {
-        setAnnouncements([
-          ...announcements,
+        // สร้างประกาศใหม่
+        const announcementDoc = await addDoc(collection(db, 'announcements'), {
+          title: values.title,
+          detail: values.detail,
+          date: formattedDate,
+          image: imageUrl,
+          createdAt: serverTimestamp(),
+        });
+
+        setAnnouncements((prev) => [
+          ...prev,
           {
-            key: String(announcements.length + 1),
+            key: announcementDoc.id,
             title: values.title,
             detail: values.detail,
             date: formattedDate,
             image: imageUrl,
           },
         ]);
+        message.success('เพิ่มประกาศใหม่เรียบร้อย');
+
+        // ดึง user ทั้งหมด
+        const usersSnapshot = await getDocs(collection(db, 'users'));
+        const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // สร้าง notification สำหรับ user ทุกคน
+        for (const user of users) {
+          await addDoc(collection(db, 'notifications'), {
+            userId: user.id,
+            announcementId: announcementDoc.id,
+            title: values.title,
+            detail: values.detail,
+            date: formattedDate,
+            image: imageUrl,
+            read: false,
+            createdAt: serverTimestamp(),
+          });
+        }
+
+        // ยิง API broadcast แจ้ง user ทุกคน (ปรับ URL ตามจริง)
+        fetch('https://api-production-8655.up.railway.app/api/announcements/broadcast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: values.title,
+            detail: values.detail,
+            date: formattedDate,
+           // image: imageUrl,
+            users: users.map(u => u.id),
+          }),
+        })
+          .then(res => res.json())
+          .then(data => {
+            console.log('✅ Broadcast API success:', data);
+          })
+          .catch(err => {
+            console.error('❌ Broadcast API error:', err);
+          });
       }
+
       setIsModalOpen(false);
-    });
-  };
-
-  const handleDelete = (key) => {
-    setAnnouncements((prev) => prev.filter((item) => item.key !== key));
-  };
-
-  const getBase64 = (file, callback) => {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => callback(reader.result));
-    reader.readAsDataURL(file);
-  };
-
-  const beforeUpload = () => true; // ✅ ไม่จำกัดขนาด
-
-  const handleImageChange = (info) => {
-    if (info.file.status === 'uploading') {
-      setLoadingImage(true);
-      return;
+      form.resetFields();
+      setImageUrl(null);
+      setEditing(null);
+    } catch (error) {
+      console.error('❌ Error saving announcement:', error);
+      message.error('บันทึกประกาศล้มเหลว');
     }
-    if (info.file.status === 'done') {
-      getBase64(info.file.originFileObj, (url) => {
-        setLoadingImage(false);
-        setImageUrl(url);
-      });
+  };
+
+  const handleDelete = async (key) => {
+    try {
+      await deleteDoc(doc(db, 'announcements', key));
+      setAnnouncements((prev) => prev.filter((item) => item.key !== key));
+      message.success('ลบประกาศเรียบร้อย');
+    } catch (error) {
+      console.error('❌ Error deleting announcement:', error);
+      message.error('ลบประกาศล้มเหลว');
     }
   };
 
@@ -113,106 +212,91 @@ const Announcement = () => {
     </div>
   );
 
-  const columns = [
-    {
-      title: 'ลำดับ',
-      dataIndex: 'key',
-      key: 'key',
-    },
-    {
-      title: 'คำอธิบาย',
-      dataIndex: 'title',
-      key: 'title',
-    },
-    {
-      title: 'เนื้อหา',
-      dataIndex: 'detail',
-      key: 'detail',
-    },
-    {
-      title: 'วันที่',
-      dataIndex: 'date',
-      key: 'date',
-    },
-   
-    {
-      title: 'แก้ไข',
-      key: 'edit',
-      render: (_, record) => (
-        <Button
-          type="primary"
-          onClick={() => showModal(record)}
-          style={{ marginRight: 8 }}
-        >
-          แก้ไข
-        </Button>
-      ),
-    },
-    {
-      title: 'ลบ',
-      key: 'delete',
-      render: (_, record) => (
-        <Button type="primary" danger onClick={() => handleDelete(record.key)}>
-          ลบ
-        </Button>
-      ),
-    },
-  ];
+const columns = [
+  {
+    title: 'ลำดับ',
+    key: 'index',
+    width: 10,
+    render: (_, __, index) => index + 1, 
+  },
+  { title: 'คำอธิบาย', dataIndex: 'title', key: 'title', width: 10 },
+  { title: 'เนื้อหา', dataIndex: 'detail', key: 'detail', width: 10 },
+  { title: 'วันที่', dataIndex: 'date', key: 'date', width: 10 },
+  {
+    title: 'แก้ไข',
+    key: 'edit',
+    width: 10,
+    render: (_, record) => (
+      <Button
+        type="primary"
+        size="small"
+        onClick={() => showModal(record)}
+        style={{ width: '60px' }} // ไม่มี marginRight
+      >
+        แก้ไข
+      </Button>
+    ),
+  },
+  {
+    title: 'ลบ',
+    key: 'delete',
+    width: 10,
+    render: (_, record) => (
+      <Button
+        type="primary"
+        danger
+        size="small"
+        onClick={() => handleDelete(record.key)}
+        style={{ width: '60px' }}
+      >
+        ลบ
+      </Button>
+    ),
+  },
+];
 
   return (
     <div className="announcement-container">
       <div className="header">
         <div className="search-box">
-          <img
-            src="https://cdn-icons-png.flaticon.com/512/54/54481.png"
-            width="20"
-            height="20"
-            alt="search"
-          />
+          <img src="https://cdn-icons-png.flaticon.com/512/54/54481.png" width="20" height="20" alt="search" />
           <Input placeholder="ค้นหา..." bordered={false} />
         </div>
         <p>ประกาศ</p>
         <div className="Group">
-          <Button
-            className="btn-add"
-            type="primary"
-            onClick={() => showModal()}
-          >
+          <Button className="btn-add" type="primary" onClick={() => showModal()}>
             เพิ่มประกาศใหม่ +
           </Button>
         </div>
       </div>
 
-      <Table columns={columns} dataSource={announcements} pagination={false} />
+      {loadingAnnouncements ? (
+        <Spin tip="กำลังโหลดประกาศ..." />
+      ) : (
+        <Table columns={columns} dataSource={announcements} pagination={false} />
+      )}
 
       <Modal
         title={editing ? 'แก้ไขประกาศ' : 'เพิ่มประกาศใหม่'}
         open={isModalOpen}
         onOk={handleOk}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setEditing(null);
+          form.resetFields();
+          setImageUrl(null);
+        }}
         okText="บันทึก"
         cancelText="ยกเลิก"
       >
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="title"
-            label="คำอธิบาย"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="title" label="คำอธิบาย" rules={[{ required: true, message: 'กรุณากรอกคำอธิบาย' }]}>
             <Input />
           </Form.Item>
-          <Form.Item
-            name="detail"
-            label="เนื้อหา"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="detail" label="เนื้อหา" rules={[{ required: true, message: 'กรุณากรอกเนื้อหา' }]}>
             <Input.TextArea rows={4} />
           </Form.Item>
-          <Form.Item
-            name="date"
-            label="วันที่"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="date" label="วันที่" rules={[{ required: true, message: 'กรุณาเลือกวันที่' }]}>
             <DatePicker format="DD/MMMM/YYYY" style={{ width: '100%' }} />
           </Form.Item>
 
@@ -221,16 +305,11 @@ const Announcement = () => {
               name="image"
               listType="picture-card"
               showUploadList={false}
-              action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
               beforeUpload={beforeUpload}
-              onChange={handleImageChange}
+              onRemove={() => setImageUrl(null)}
             >
               {imageUrl ? (
-                <img
-                  src={imageUrl}
-                  alt="uploaded"
-                  style={{ width: '100%' }}
-                />
+                <img src={imageUrl} alt="uploaded" style={{ width: '100%' }} />
               ) : (
                 uploadButton
               )}

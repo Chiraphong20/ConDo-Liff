@@ -6,16 +6,10 @@ const MenuPage = () => {
   return (
     <div className="menu-layout">
       <div className="menu-sidebar">
-        <div className="menu-card">
-          {/* ✅ ใช้ absolute path เพื่อหลีกเลี่ยง path ผิด */}
-          <Link to="/menupage/meet">จองห้องประชุม</Link>
-        </div>
-        <div className="menu-card">
-          <Link to="/menupage/finance">เบิกจ่ายค่าส่วนกลาง</Link>
-        </div>
+        <Link to="/menupage/meet" className="menu-card">จองห้องประชุม</Link>
+        <Link to="/menupage/finance" className="menu-card">เบิกจ่ายค่าส่วนกลาง</Link>
       </div>
       <div className="menu-content">
-        {/* ✅ ใช้ Outlet ให้ React Router แสดงหน้าที่ตรงกับ Route */}
         <Outlet />
       </div>
     </div>

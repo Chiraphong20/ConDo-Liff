@@ -15,7 +15,6 @@ const CondoReport = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-
       try {
         // Load repair
         const repairColRef = collectionGroup(db, 'repair');
@@ -37,18 +36,18 @@ const CondoReport = () => {
           type: 'ร้องเรียน',
         }));
 
-        // Load technician list
+        // Load technicians
         const usersSnapshot = await getDocs(collection(db, 'users'));
         const techList = usersSnapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .filter(user => user.role === 'technician');
         setTechnicians(techList);
 
+        // Set all items
         setItems([...repairList, ...complaintList]);
       } catch (error) {
         console.error('โหลดข้อมูลไม่สำเร็จ:', error);
       }
-
       setLoading(false);
     };
 
@@ -67,39 +66,81 @@ const CondoReport = () => {
     setSelectedTechnician(null);
   };
 
-  const handleAssign = async () => {
-    if (!selectedItem || !selectedTechnician) return;
+ const handleAssign = async () => {
+  if (!selectedItem || !selectedTechnician) return;
 
-    try {
-      // อัปเดต document เดิม
-      await updateDoc(selectedItem.ref, {
+  // ✅ ตรวจสอบว่า selectedTechnician มี userId (LINE UID)
+  if (!selectedTechnician.id) {
+    alert('⚠️ ไม่พบ userId ของช่าง กรุณาตรวจสอบว่าใน Firebase มี field userId (LINE UID) อยู่หรือไม่');
+    console.warn('❌ ไม่มี userId:', selectedTechnician);
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // ✅ อัปเดตสถานะในเอกสารต้นทาง
+    await updateDoc(selectedItem.ref, {
+      officers: [selectedTechnician],
+      status: 'กำลังดำเนินการ',
+    });
+
+    // ✅ บันทึกข้อมูลใน assignedTasks ของช่าง
+    await setDoc(
+      doc(db, 'users', selectedTechnician.id, 'assignedTasks', selectedItem.id),
+      {
+        ...selectedItem,
         officers: [selectedTechnician],
-        status: 'กำลังดำเนินการ',
-      });
+        status: 'ยังไม่ได้ดำเนินการ',
+        assignedAt: new Date(),
+        createdAt: selectedItem.createdAt || new Date(),
+        userInfo: selectedItem.userInfo || {},
+        media: selectedItem.media || '',
+        title: selectedItem.title || '',
+        description: selectedItem.description || '',
+      }
+    );
 
-      // เพิ่มงานใน assignedTasks ของช่าง
-      await setDoc(
-        doc(db, 'users', selectedTechnician.id, 'assignedTasks', selectedItem.id),
-        {
-          ...selectedItem,
-          officers: [selectedTechnician],
-          status: 'กำลังดำเนินการ',
-          assignedAt: new Date(),
-          createdAt: selectedItem.createdAt || new Date(),
-          userInfo: selectedItem.userInfo || {},
-          media: selectedItem.media || '',
-          title: selectedItem.title || '',
-          description: selectedItem.description || '',
-        }
-      );
+    // ✅ เตรียมข้อความแจ้งเตือน
+    const message = `📌 คุณได้รับมอบหมายงานใหม่: ${selectedItem.title || 'ไม่ระบุ'}\nรายละเอียด: ${selectedItem.description}\nnกรุณาตรวจสอบในระบบ`;
 
-      alert('มอบหมายงานเรียบร้อยแล้ว');
-      handleCancel();
-    } catch (err) {
-      console.error('มอบหมายงานไม่สำเร็จ:', err);
-      alert('เกิดข้อผิดพลาดในการมอบหมายงาน');
+    // ✅ Log สิ่งที่จะส่ง
+    console.log('📦 ส่ง PUSH ถึงช่าง:', {
+      userId: selectedTechnician.userId,
+      message,
+    });
+
+    // ✅ เรียก API สำหรับ Push Notification
+    const response = await fetch('https://api-production-8655.up.railway.app/api/push', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: selectedTechnician.id,
+        message,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ Push API error:', errorData);
+      throw new Error('ส่งข้อความแจ้งเตือนไม่สำเร็จ');
     }
-  };
+
+    // ✅ ลบรายการจากหน้ารายการ
+    setItems(prevItems => prevItems.filter(item => item.id !== selectedItem.id));
+
+    alert('✅ มอบหมายงานและส่งแจ้งเตือนเรียบร้อยแล้ว');
+    handleCancel();
+  } catch (err) {
+    console.error('❌ มอบหมายงานล้มเหลว:', err);
+    alert('เกิดข้อผิดพลาดในการมอบหมายงาน หรือส่งแจ้งเตือน');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="content-report">
@@ -109,10 +150,7 @@ const CondoReport = () => {
           <Input placeholder="ค้นหา..." bordered={false} />
         </div>
         <p>รับเรื่องร้องขอ</p>
-        <div className="Group">
-          <Button className="btn-add" onClick={() => setModalVisible(true)}>รับเรื่อง</Button>
-          <Button className="btn-delete">ลบ</Button>
-        </div>
+        <div className="Group"></div>
       </div>
 
       <div className="room-section">
@@ -126,9 +164,11 @@ const CondoReport = () => {
           items.map((item, index) => (
             <div key={index} className="room-card" onClick={() => handleCardClick(item)}>
               <img
-                src={item.type === 'แจ้งซ่อม'
-                  ? 'https://cdn-icons-png.flaticon.com/512/6001/6001179.png'
-                  : 'https://cdn-icons-png.flaticon.com/512/1828/1828911.png'}
+                src={
+                  item.type === 'แจ้งซ่อม'
+                    ? 'https://cdn-icons-png.flaticon.com/512/6001/6001179.png'
+                    : 'https://cdn-icons-png.flaticon.com/512/1828/1828911.png'
+                }
                 alt={item.type}
                 style={{ width: 60, margin: '10px 0' }}
               />

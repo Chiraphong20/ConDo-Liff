@@ -16,6 +16,8 @@ function Home() {
         <Link to="/machanicstatus" className="button">ติดตามสถานะช่าง</Link>
         <Link to="/machaniccase" className="button">เคสซ่อมแซม</Link>
         <Link to="/machanic" className="button">รายละเอียดคำสั่งซ่อม</Link>
+        <Link to="/meet" className="button">จองห้องประชุม</Link>
+        <Link to="/finance" className="button">เบิกจ่ายค่าส่วนกลาง</Link>
 
         {/* หาก CondoPayment.html เป็นไฟล์ HTML จริงนอก React ใช้ <a> ได้ */}
         <a href="CondoPayment.html" className="button" target="_blank" rel="noopener noreferrer">

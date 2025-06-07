@@ -114,7 +114,7 @@ const Meet = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container-meett">
       <h2>จองห้องประชุม</h2>
       <form onSubmit={handleSubmit}>
         <label htmlFor="name">ชื่อ-นามสกุล</label>

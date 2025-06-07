@@ -114,7 +114,7 @@ const Register = () => {
 
     // เรียก API backend เพื่อเปลี่ยน Rich Menu
     try {
-      const response = await fetch('https://condo-api-richmenu-production.up.railway.app/api/register', {
+      const response = await fetch('https://api-production-8655.up.railway.app/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,6 +152,7 @@ const Register = () => {
     } catch (err) {
       console.warn('⚠️ ไม่สามารถส่งข้อความผ่าน LIFF ได้:', err.message);
     }
+    liff.closeWindow();
 
   } catch (err) {
     message.error('❌ เกิดข้อผิดพลาด: ' + err.message);
@@ -187,10 +188,11 @@ const Register = () => {
         justifyContent: 'center',
       }}
     >
+      <div className='title-register'>
       <Title level={3} style={{ color: 'white', textAlign: 'center', marginBottom: 24 }}>
         ลงทะเบียน
       </Title>
-
+      </div>
       <Form
         form={form}
         layout="vertical"
@@ -287,7 +289,7 @@ const Register = () => {
                 style={{
                   backgroundColor: '#FF8282',
                   color: 'white',
-                  padding: '8px 24px',
+                  padding: '8px 45px',
                   fontSize: '16px',
                   borderRadius: '20px',
                   border: 'none',
@@ -313,7 +315,7 @@ const Register = () => {
                   marginTop: '20px',
                 }}
               >
-                ยืนยัน
+                ลงทะเบียน
               </Button>
             </Col>
           </Row>

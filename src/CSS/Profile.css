@@ -1,31 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
 
  .wrapper-profile {
-  max-width: 1024px;
-  margin: 0 auto;
+  min-width: 120vw; /* ใช้ความกว้างเต็มหน้าจอ */
+  min-height: 120vh; /* ใช้ความสูงเต็มหน้าจอ */
   padding: 20px 16px;
   box-sizing: border-box;
-  width: 100%;
-  background-image: url('/images/2.png') !important; /* ✅ ใส่ที่นี่แทน container */
-  height: 100vh;
+  background-image: url('/images/2.png') !important;
+  background-size: cover;       /* ✅ ปรับให้รูปขยายเต็มพื้นหลัง */
+  background-position: center;  /* ✅ จัดให้อยู่กึ่งกลาง */
+  background-repeat: no-repeat; /* ✅ ไม่ให้รูปซ้ำ */
   font-family: 'Kanit', sans-serif;
-
-
 }
 .container-profile {
   width: 400px;
   height: 1000px;
   border-radius: 16px; 
   margin: 0 auto;
-  padding: 24px;
   height: 80px;
-  margin-top: 20px;
 }
 
 .profile-page p {
   color: #ffffff !important;
   text-align: left;
-  margin-left: 40px;
 }
 
 

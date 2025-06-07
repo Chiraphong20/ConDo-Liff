@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
+import { Modal } from "antd";
 import { db } from "./firebase";
 import { collection, getDocs } from "firebase/firestore";
 import "./CSS/FinancePage.css";
 
 const FinancePage = () => {
   const [reports, setReports] = useState([]);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,6 +24,11 @@ const FinancePage = () => {
     fetchData();
   }, []);
 
+  const handlePreview = (imageUrl) => {
+    setPreviewImage(imageUrl);
+    setPreviewVisible(true);
+  };
+
   return (
     <div className="finance-report-list">
       <h2 className="title">รายงานรายรับ-รายจ่าย</h2>
@@ -33,9 +41,11 @@ const FinancePage = () => {
           {report.image && report.image.length > 0 ? (
             <div className="report-image-wrapper">
               <img
-                src={report.image[0]} // แสดงรูปแรกเท่านั้น
-                alt={`report-${index}`}
+                src={report.image[0]}
+               alt={'report-${index}'}
                 className="report-image"
+                onClick={() => handlePreview(report.image[0])}
+                style={{ cursor: "pointer" }}
               />
             </div>
           ) : (
@@ -43,6 +53,18 @@ const FinancePage = () => {
           )}
         </div>
       ))}
+
+      <Modal
+        visible={previewVisible}
+        footer={null}
+        onCancel={() => setPreviewVisible(false)}
+      >
+        <img
+          alt="preview"
+          style={{ width: "100%" }}
+          src={previewImage}
+        />
+      </Modal>
     </div>
   );
 };

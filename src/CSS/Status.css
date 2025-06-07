@@ -1,14 +1,12 @@
 /* Status.css */
-
-.container {
+.container-status-m {
   padding: 20px;
   min-height: 100vh;
   background: linear-gradient(135deg, #0d1b2a, #1b263b); /* พื้นหลังน้ำเงินเข้มลายเฉียง */
-  color: white;
+  color: #000 !important;
   font-family: 'Kanit', sans-serif;
 }
 
-/* แท็บ */
 .tabs {
   display: flex;
   background-color: #1e2a3a;
@@ -26,14 +24,17 @@
   color: #aaa;
   font-weight: bold;
   transition: 0.3s;
+    font-size: 20px;
+
 }
 
 .tab.active {
   background-color: #6b73ff; /* สีม่วง/น้ำเงิน */
   color: white;
+  font-size: 20px;
+
 }
 
-/* หัวตาราง */
 .tab-header {
   display: flex;
   justify-content: space-between;
@@ -42,9 +43,9 @@
   border-radius: 10px;
   font-weight: bold;
   margin-bottom: 10px;
+  font-size: 20px;
+  color: white;
 }
-
-/* รายการแจ้งซ่อม */
 .status-list {
   list-style: none;
   padding: 0;
@@ -68,35 +69,48 @@
 }
 
 .status {
+  position: relative;
   display: flex;
   align-items: center;
   font-weight: bold;
+  padding-left: 40px; 
+  font-size: 16px;
 }
 
-/* จุดสีแดง */
 .status::before {
   content: '';
-  width: 10px;
-  height: 10px;
-  background-color: red;
+  position: absolute;
+  top: 50%;
+  left: 5px; 
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  margin-right: 8px;
+  transform: translateY(-50%);
+}
+.dot-red::before {
+  background-color: red;
 }
 
-/* ป้ายหัวข้อ */
+.dot-orange::before {
+  background-color: orange;
+}
+
+.dot-green::before {
+  background-color: green;
+}
 .label {
   font-weight: bold;
   color:black;
+  font-size: 20px;
 }
 
-/* Modal แสดงรายละเอียด */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background:rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -104,24 +118,58 @@
 }
 
 .modal-content {
-  background-color: #1e2a3a;
+  background-color: #fff;
   padding: 20px;
   border-radius: 12px;
-  max-width: 400px;
-  width: 90%;
-  color: white;
+  max-width: 500px;
+  width: 80%;
+  height: 90%;
 }
 
 .modal-content img,
 .modal-content video {
-  width: 100%;
+  width: 50px;
+  height: 200px;
   border-radius: 8px;
   margin-bottom: 15px;
+  object-fit: cover; 
 }
 
+
+.modal-header-info {
+  color: #000 !important;
+  margin-left: 20px;
+}
 .close {
   float: right;
-  font-size: 24px;
-  color: white;
+  font-size: 40px;
+  color: rgb(224, 16, 16);
   cursor: pointer;
+  margin-top: -20px;
+}
+.preview-modal {
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview-modal .modal-content {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.preview-modal img,
+.preview-modal video {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 10px;
 }
