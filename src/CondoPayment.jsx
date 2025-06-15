@@ -207,20 +207,15 @@ if (
         </div>
         <p>คนที่ค้างชำระ</p>
         <div className="Group">
-          <Button className="btn-add" onClick={() => openModal('add')}>
+          <Button  className="btn-add"  onClick={() => openModal('add')}>
             แจ้งยอดชำระ +
           </Button>
-          <Button className="btn-edit" onClick={() => openModal('edit')}>
-            แก้ไข
-          </Button>
-          <Button className="btn-delete" onClick={() => openModal('delete')}>
-            ลบ
-          </Button>
+    
         </div>
       </div>
 
-      <Tabs defaultActiveKey="unpaid">
-        <Tabs.TabPane tab="คนที่ค้างชำระ" key="unpaid">
+      <Tabs defaultActiveKey="unpaid" className="custom-tabs">
+      <Tabs.TabPane tab="คนที่ค้างชำระ" key="unpaid" className="tab-unpaid">
           <div className="room-section">
             {rooms
               .filter((room) => room.status === 'ยังไม่ชำระ')
@@ -247,7 +242,7 @@ if (
           </div>
         </Tabs.TabPane>
 
-        <Tabs.TabPane tab="ประวัติชำระแล้ว" key="paid">
+        <Tabs.TabPane tab="ประวัติชำระแล้ว" key="paid" className="tab-paid">
           <div className="room-section">
             {rooms
               .filter((room) => room.status === 'ชำระแล้ว')

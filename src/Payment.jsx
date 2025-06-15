@@ -81,6 +81,7 @@ const Payment = () => {
 
   return (
   <div className="payment-wrapper">
+    <h2>ค้างชำระ</h2>
     <div className='content-payment-m'>
       <div className="tab-bar" style={{width:'100%'}}>
         <div
@@ -98,8 +99,11 @@ const Payment = () => {
       </div>
 
       <div className="container-payment">
-        {activeTab === 'my-bills' && unpaidBills.length === 0 && <p>ไม่มีบิลที่ยังไม่ชำระ</p>}
-        {activeTab === 'my-bills' &&
+{activeTab === 'my-bills' && unpaidBills.length === 0 && (
+  <div className='Reload'>
+  <p>ไม่มีบิลที่ยังไม่ชำระ</p>
+  </div>
+)}        {activeTab === 'my-bills' &&
           unpaidBills.map((bill) => (
             <div key={bill.id} className="bill-card">
               <div className="bill-header">

@@ -56,8 +56,12 @@ const CondoMeet = () => {
 
   return (
     <div className='custom-content-meet'>
-      <div className="meeting-container">
-        <h2>ตรวจสอบการจองห้องประชุม</h2>
+     <div className="meeting-container">
+  <div className="header">
+    <div className="spacer" />
+    <p className="title">จองห้องประชุม</p>
+    <div className="spacer" />
+  </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', marginTop: 50 }}>

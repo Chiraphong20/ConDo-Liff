@@ -42,16 +42,30 @@
   background-color: #059669;
 }
 
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .remember-me {
   display: flex;
   align-items: center;
-  justify-content: start;
-  margin-top: 8px;
-}
+  gap: 10px;
+  white-space: nowrap;
 
+}
 .logo h2 {
   font-weight: bold;
   margin-top: 10px;
   font-size: 20px;
   color: white;
+}
+form label {
+    display: block;
+    text-align: left;
+    font-weight: bold;
+    color: #ffffff;
+    margin-top: 0px;
+
 }

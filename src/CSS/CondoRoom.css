@@ -53,13 +53,6 @@
   font-size: 14px;
 }
 
-.room-section {
-  padding: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-  gap: 20px;
-  width: 80vw;
-}
 
 .room-card {
   display: flex;

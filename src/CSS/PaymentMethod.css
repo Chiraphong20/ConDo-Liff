@@ -1,19 +1,26 @@
 .wrapper-bank{
-  padding: 20px;
-  color: #000;
-  background-image: url('/images/2.png') !important; /* ✅ ใส่ที่นี่แทน container */
+  max-width: 480px; /* ปรับให้พอดีกับมือถือ */
   width: 100%;
-  height: 100vh;
+  min-height: 100vh; /* เต็มหน้าจอแนวตั้ง */
   font-family: 'Kanit', sans-serif;
+  background-image: url('/images/2.png') !important;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;  
+  align-items: center;     
+  padding: 10px 20px;
+  box-sizing: border-box;
+  color: white; 
 }
 .payment-container-bank {
-  width: 400px;
-  height: 1000px;
-  border-radius: 16px; 
-  margin: 0 auto;
-  padding: 24px;
-  height: 80px;
-  margin-top: 20px;
+  width: 100%;
+  margin: 20px 0 20px 0;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  font-size: 24px;
+  
 }
 
 .payment-header {
@@ -32,9 +39,9 @@
 }
 .close-btn {
   position: absolute;
-  top: -10px;
+  top: -50px;
   right: 0;
-  font-size: 22px;
+  font-size: 40px;
   cursor: pointer;
 }
 

@@ -218,80 +218,88 @@ const Income = () => {
   ];
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ textAlign: 'center' }}>แจ้งยอดรายรับ-รายจ่าย</h2>
+  <div style={{ padding: '24px 16px', width: '100%', boxSizing: 'border-box' }}>
+    <div className="header">
+      <div className="spacer" />
+      <p className="page-title">แจ้งยอดรายรับ-รายจ่าย</p>
+      <div className="spacer" />
+    </div>
 
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
       <Button
         type="primary"
         icon={<PlusOutlined />}
-        style={{ marginBottom: 16 }}
         onClick={openAddModal}
       >
         เพิ่มข้อมูล
       </Button>
-
-      <Table
-        dataSource={dataSource}
-        columns={columns}
-        loading={loading}
-        pagination={false}
-      />
-
-      <Modal
-        title={isEdit ? 'แก้ไขข้อมูล' : 'เพิ่มข้อมูล'}
-        open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        onOk={handleSubmit}
-        okText="ยืนยัน"
-        cancelText="ยกเลิก"
-      >
-        <Form layout="vertical" form={form}>
-          <Form.Item
-            name="description"
-            label="คำอธิบาย"
-            rules={[{ required: true, message: 'กรุณากรอกคำอธิบาย' }]}
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
-
-          <Form.Item
-            name="date"
-            label="วันที่"
-            rules={[{ required: true, message: 'กรุณาเลือกวันที่' }]}
-          >
-            <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
-          </Form.Item>
-
-          <Form.Item
-            name="image"
-            label="อัพโหลดรูปภาพ"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
-          >
-            <Upload
-              beforeUpload={() => false}
-              listType="picture-card"
-              onPreview={handlePreview}
-            >
-              <div>
-                <UploadOutlined />
-                <div>อัพโหลด</div>
-              </div>
-            </Upload>
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        visible={previewVisible}
-        title={previewTitle}
-        footer={null}
-        onCancel={() => setPreviewVisible(false)}
-      >
-        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
-      </Modal>
     </div>
-  );
+
+    <Table
+  dataSource={dataSource}
+  columns={columns}
+  loading={loading}
+  pagination={false}
+  scroll={{ x: '100%' }}
+  style={{ width: '100%' }}
+/>
+
+    <Modal
+      title={isEdit ? 'แก้ไขข้อมูล' : 'เพิ่มข้อมูล'}
+      open={isModalOpen}
+      onCancel={() => setIsModalOpen(false)}
+      onOk={handleSubmit}
+      okText="ยืนยัน"
+      cancelText="ยกเลิก"
+    >
+      <Form layout="vertical" form={form}>
+        <Form.Item
+          name="description"
+          label="คำอธิบาย"
+          rules={[{ required: true, message: 'กรุณากรอกคำอธิบาย' }]}
+        >
+          <Input.TextArea rows={3} />
+        </Form.Item>
+
+        <Form.Item
+          name="date"
+          label="วันที่"
+          rules={[{ required: true, message: 'กรุณาเลือกวันที่' }]}
+        >
+          <DatePicker format="DD/MM/YYYY" style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item
+          name="image"
+          label="อัพโหลดรูปภาพ"
+          valuePropName="fileList"
+          getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+        >
+          <Upload
+            beforeUpload={() => false}
+            listType="picture-card"
+            onPreview={handlePreview}
+          >
+            <div>
+              <UploadOutlined />
+              <div>อัพโหลด</div>
+            </div>
+          </Upload>
+        </Form.Item>
+      </Form>
+    </Modal>
+
+    <Modal
+      visible={previewVisible}
+      title={previewTitle}
+      footer={null}
+      onCancel={() => setPreviewVisible(false)}
+    >
+      <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+    </Modal>
+  </div>
+);
+
 };
 
 export default Income;

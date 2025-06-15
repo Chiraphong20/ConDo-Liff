@@ -113,8 +113,8 @@ const CondoStatus = () => {
         <p>ติดตามสถานะ</p>
       </div>
 
-      <Tabs defaultActiveKey="inProgress">
-        <Tabs.TabPane tab="กำลังดำเนินการ" key="inProgress">
+<Tabs defaultActiveKey="inProgress" className="custom-tabs">
+        <Tabs.TabPane tab="กำลังดำเนินการ" key="inProgress" >
           <div className="room-section">
             {loading ? (
               <Spin tip="กำลังโหลด..." size="large" />
@@ -135,7 +135,19 @@ const CondoStatus = () => {
                       <span className="red-dot" />
                       <span className="status-text">{task.status || 'กำลังดำเนินการ'}</span>
                     </div>
-                    <InfoCircleOutlined className="info-icon" style={{ fontSize: 20, color: '#1890ff' }} />
+                    <div className="anticon">
+  <InfoCircleOutlined
+    className="info-icon"
+    style={{
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      fontSize: 20,
+      color: '#1890ff',
+      cursor: 'pointer',
+    }}
+  />
+</div>
                     <img
                       src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
                       alt="icon"
@@ -172,7 +184,19 @@ const CondoStatus = () => {
                       <span className="green-dot" />
                       <span className="status-text">{task.status || 'ซ่อมแซมเสร็จสิ้น'}</span>
                     </div>
-                    <InfoCircleOutlined className="info-icon" style={{ fontSize: 20, color: '#1890ff' }} />
+                    <div className='anticon'>
+                  <InfoCircleOutlined
+  className="info-icon"
+  style={{
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    fontSize: 20,
+    color: '#1890ff',
+    cursor: 'pointer',
+  }}
+/>
+</div>
                     <img
                       src="https://cdn-icons-png.flaticon.com/512/6001/6001179.png"
                       alt="icon"

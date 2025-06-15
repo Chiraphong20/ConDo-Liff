@@ -19,7 +19,6 @@
   font-weight: bold;
 }
 
-
 .search-box {
   display: flex;
   align-items: center;
@@ -27,16 +26,16 @@
   border-radius: 16px;
   padding: 5px 20px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  width: 15%; /* กว้าง 80% ของ container */
-  max-width: 500px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
+  width: 15%; 
+  max-width: 500px; 
   margin-left: 20px;
 }
 
 .btn-large {
   padding: 12px 24px;
   font-size: 18px;
-  width: 15%; /* กว้าง 80% ของ container */
-  max-width: 700px; /* กำหนด max width เพื่อไม่ให้กว้างเกิน */
+  width: 15%;
+  max-width: 700px; 
   height: 40px;
   border-radius: 16px;
   background-color:#99F4AC ;
@@ -53,13 +52,6 @@
   font-size: 14px;
 }
 
-.room-section {
-  padding: 20px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-  gap: 20px;
-}
-
 .room-card {
   background-color: white;
   border-radius: 10px;
@@ -67,8 +59,13 @@
   text-align: center;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   height: 250px;
+  position: relative; 
 }
-
+.anticon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
 .room-card img {
   width: 60px;
   margin-bottom: 10px;
@@ -93,4 +90,18 @@
 .save {
   background: #4CAF50;
   color: white;
+}
+
+.custom-tabs .ant-tabs-tab:nth-child(1) .ant-tabs-tab-btn {
+  color: #d32f2f; 
+  font-weight: bold;
+}
+
+.custom-tabs .ant-tabs-tab:nth-child(2) .ant-tabs-tab-btn {
+  color: #388e3c; 
+  font-weight: bold;
+}
+
+.custom-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  text-decoration: underline;
 }

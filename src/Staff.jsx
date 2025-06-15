@@ -222,7 +222,6 @@ const Staff = () => {
               else if (key === 'delete') confirmDelete(record.key);
             }}
             items={[
-              { key: 'manage', label: 'มอบหมายงาน' },
               { key: 'edit', label: 'แก้ไข' },
               { key: 'delete', label: 'ลบ', danger: true },
             ]}
@@ -238,9 +237,13 @@ const Staff = () => {
   ];
 
   return (
-    <div className="staff-container">
-      <h2 style={{ textAlign: 'center' }}>จัดการพนักงาน</h2>
-      <Table columns={columns} dataSource={dataSource} pagination={false} />
+   <div className="staff-container">
+ <div className="header">
+  <div className="spacer" /> {/* เผื่อไว้สำหรับปุ่มซ้าย */}
+  <p className="title-staff">จัดการพนักงาน</p>
+  <div className="spacer" /> {/* เผื่อไว้สำหรับปุ่มขวา */}
+</div>
+  <Table columns={columns} dataSource={dataSource} pagination={false} />
 
       {/* Modal มอบหมายงาน */}
       <Modal

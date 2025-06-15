@@ -1,14 +1,17 @@
 .finance-report-list {
-  padding: 24px;
+ padding-top: 48px;
   background-color: #0d1b2a;
   min-height: 100vh;
   color: white;
 }
 
 .title {
-  text-align: center;
-  font-size: 24px;
-  margin-bottom: 24px;
+  text-align: center  !important;
+  font-size: 28px !important;
+  margin-top: 0 !important;
+
+  color: white !important;
+  position: relative !important;
 }
 
 .report-card {

@@ -17,10 +17,17 @@ html, body {
 
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 20px;
-  width:87vw; 
+  width: 87vw;
+}
+
+.header p {
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
 }
 .btn-add {
   padding: 12px 24px;

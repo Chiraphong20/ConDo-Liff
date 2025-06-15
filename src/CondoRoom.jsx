@@ -13,23 +13,27 @@ const CondoRoom = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [form] = Form.useForm();
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'users'));
-        const userData = querySnapshot.docs.map(doc => ({
+useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, 'users'));
+      const userData = querySnapshot.docs
+        .map(doc => ({
           ...doc.data(),
           id: doc.id,
-        }));
-        setRooms(userData);
-        setFilteredRooms(userData); // ตั้งค่าเริ่มต้นให้แสดงทั้งหมด
-      } catch (err) {
-        console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', err);
-      }
-    };
+        }))
+        .filter(user => user.role !== 'technician'); // <-- กรอง Role ที่เป็น 'ช่าง'
 
-    fetchUsers();
-  }, []);
+      setRooms(userData);
+      setFilteredRooms(userData);
+    } catch (err) {
+      console.error('เกิดข้อผิดพลาดในการโหลดข้อมูล:', err);
+    }
+  };
+
+  fetchUsers();
+}, []);
+
 
   // ฟังก์ชันกรองข้อมูล เมื่อมีการพิมพ์ในช่องค้นหา
 const handleSearch = (e) => {

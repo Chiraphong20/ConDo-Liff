@@ -92,10 +92,7 @@ const PaymentMethod = () => {
         <p>เลือกช่องทางการชำระเงิน</p>
       </div>
 
-      <div className="payment-bill-info">
-        <p><strong>รอบบิล:</strong> {bill.billingCycle}</p>
-        <p><strong>ยอดที่ต้องชำระ:</strong> {bill.amount}฿</p>
-      </div>
+
 
       <Radio.Group
         onChange={e => setSelectedMethod(e.target.value)}

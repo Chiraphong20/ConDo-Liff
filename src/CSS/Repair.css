@@ -27,7 +27,7 @@
   align-items: center;
   padding: 5px;
   border: white;
-  background: #94B9FF;
+  background: #9E9E9E;
   width: 80px;
   height: 80px;
   border-radius: 20px;
@@ -67,5 +67,31 @@
   border-color: #22C38A;
   font-weight: bold;
 }
+.container-report-m .ant-form-item-label > label {
+  color: white !important;
+  font-family: 'Kanit', sans-serif !important;
+}
 
+/* เอาเส้นใต้ tab ออก */
+.ant-tabs-ink-bar {
+  display: none !important;
+}
 
+/* สไตล์ default ของปุ่ม tab */
+.ant-tabs-tab {
+  background-color: #94B9FF;
+  border-radius: 20px;
+  color: white !important;
+  transition: 0.3s ease;
+}
+
+/* เมื่อเลือก tab แล้ว */
+.ant-tabs-tab-active .tab-icon {
+  background-color: #94B9FF !important; /* เปลี่ยนสีที่ต้องการ */
+  color: white !important;
+}
+
+/* เพื่อให้ไม่เหลือเส้น border ใต้แท็บ */
+.ant-tabs-nav::before {
+  border-bottom: none !important;
+}

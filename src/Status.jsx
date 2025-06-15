@@ -94,6 +94,7 @@ const getStatusClass = (status) => {
   
    return (
     <div className="container-status-m">
+        <h2 style={{ color: 'white' }}>ติดตามสถานะ</h2>
       <div className="tabs">
         <div className={`tab ${activeTab === 'status' ? 'active' : ''}`} onClick={() => openTab('status')}>
           ติดตามสถานะ

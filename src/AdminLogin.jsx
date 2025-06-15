@@ -9,23 +9,22 @@ function AdminLogin() {
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+ const handleLogin = (e) => {
+  e.preventDefault();
 
-    // ตรวจสอบแบบง่าย
-    if (username === 'admin12312' && password === '12345') {
-      localStorage.setItem('adminLoggedIn', 'true'); // ✅ ต้องเก็บเสมอ
-      navigate('/dashboard/condo-room');
-    } else {
-      alert('Invalid username or password');
-    }
-  };
+  if (username === 'admin12312' && password === '12345') {
+    localStorage.setItem('adminLoggedIn', 'true');
+    window.location.href = '/dashboard/condo-room'; // 👉 reload พร้อม redirect
+  } else {
+    alert('Invalid username or password');
+  }
+};
 
   return (
     <div className="login-container">
       <div className="login-box">
         <div className="logo">
-<img src="/images/Condo_connect_3.png" alt="logo"   style={{ width: '250px', position: 'relative', top: '-110px' }}
+<img src="/images/Condo_connect_3.png" alt="logo"   style={{ width: '250px', position: 'relative', top: '-140px' }}
 />
     
         </div>
@@ -37,10 +36,13 @@ function AdminLogin() {
           <label>Password</label>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-          <div className="remember-me">
-            <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
-            <label>Remember me</label>
-          </div>
+        <div className="form-footer">
+  <div className="remember-me">
+    <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+    <label>Remember me</label>
+  </div>
+</div>
+
 
           <button type="submit" className="login-button">Sign in</button>
         </form>

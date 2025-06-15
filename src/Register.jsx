@@ -173,20 +173,21 @@ const Register = () => {
 
   return (
     <div
-      style={{
-        maxWidth: 450,
-        margin: 'auto',
-        padding: 30,
-        backgroundImage: "url('/images/2.png')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        boxShadow: '0 8px 16px rgba(0,0,0,0.25)',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-      }}
+     style={{
+  maxWidth: 450,
+  margin: 'auto',
+  padding: 30,
+  backgroundImage: "url('/images/2.png')",
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  boxShadow: '0 8px 16px rgba(0,0,0,0.25)',
+  minHeight: '100vh',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-start',  // <-- จุดนี้ทำให้ container กลางหน้าจอแนวแกนตั้ง
+}}
+
     >
       <div className='title-register'>
       <Title level={3} style={{ color: 'white', textAlign: 'center', marginBottom: 24 }}>

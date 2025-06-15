@@ -1,27 +1,34 @@
 @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap');
 
- .wrapper-profile {
-  min-width: 120vw; /* ใช้ความกว้างเต็มหน้าจอ */
-  min-height: 120vh; /* ใช้ความสูงเต็มหน้าจอ */
+.wrapper-profile {
+  width: 100vw;
+  height: 100vh;
   padding: 20px 16px;
   box-sizing: border-box;
   background-image: url('/images/2.png') !important;
-  background-size: cover;       /* ✅ ปรับให้รูปขยายเต็มพื้นหลัง */
-  background-position: center;  /* ✅ จัดให้อยู่กึ่งกลาง */
-  background-repeat: no-repeat; /* ✅ ไม่ให้รูปซ้ำ */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   font-family: 'Kanit', sans-serif;
+  overflow-y: auto;
 }
+
 .container-profile {
-  width: 400px;
-  height: 1000px;
-  border-radius: 16px; 
+  max-width: 400px;
+  width: 100%;
   margin: 0 auto;
-  height: 80px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.4); /* เพิ่มถ้าต้องการให้ข้อความอ่านง่าย */
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .profile-page p {
   color: #ffffff !important;
   text-align: left;
+}
+.Personal p {
+  color: white;
 }
 
 

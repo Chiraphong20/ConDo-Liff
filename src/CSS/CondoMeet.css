@@ -2,10 +2,31 @@
 .meeting-container {
   text-align: center;
   width: 87vw;
-  background-color: white; /* พื้นหลังขาว */
-
+  background-color: white;
+  padding-top: 24px;
 }
-.custom-content-content {
+
+.header {
+  position: relative;
+  height: 60px; /* หรือสูงตามต้องการ */
+  margin-bottom: 20px;
+}
+
+.title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  font-weight: bold;
+  font-family: 'Kanit', sans-serif;
+}
+
+.spacer {
+  flex: 1;
+}
+tent-content {
   background-color: white !important;
   padding: 24px; /* หรือมากกว่านี้ตามต้องการ */
   min-height: 100vh;

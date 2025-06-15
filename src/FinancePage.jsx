@@ -8,6 +8,34 @@ const FinancePage = () => {
   const [reports, setReports] = useState([]);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+ useEffect(() => {
+    const initLiff = async () => {
+      try {
+        await liff.init({ liffId: '2007355122-mwPwRoAv' }); // ✅ ใช้ LIFF ID เดียวกับ Meet
+
+        if (!liff.isLoggedIn()) {
+          liff.login({ redirectUri: window.location.href });
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        setUserId(profile.userId);
+
+        const userRef = doc(db, 'users', profile.userId);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setUserProfile(userSnap.data());
+        } else {
+          setMessage("⚠️ ไม่พบข้อมูลผู้ใช้งาน กรุณาลงทะเบียนก่อน");
+        }
+      } catch (err) {
+        setMessage("เกิดข้อผิดพลาดในการโหลด LIFF: " + err.message);
+      }
+    };
+
+    initLiff();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,7 +59,8 @@ const FinancePage = () => {
 
   return (
     <div className="finance-report-list">
-      <h2 className="title">รายงานรายรับ-รายจ่าย</h2>
+  
+<h2 className="title">รายงานรายรับ-รายจ่าย</h2>
 
       {reports.map((report, index) => (
         <div key={report.id} className="report-card">
